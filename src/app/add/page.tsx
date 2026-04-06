@@ -11,9 +11,10 @@ import { Suspense, useEffect, useState } from "react";
 function AddContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { step, places, error, caption, run, reset } = useExtract();
+  const { step, places, error, caption, run, runWithCaption, reset } = useExtract();
   const [instagramUrl, setInstagramUrl] = useState("");
   const [allSaved, setAllSaved] = useState(false);
+  const [manualCaption, setManualCaption] = useState("");
 
   // 모바일 공유 또는 ?url= 파라미터로 자동 실행
   useEffect(() => {
@@ -94,6 +95,39 @@ function AddContent() {
             <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-600">
               {error}
             </div>
+
+            {/* 캡션 직접 붙여넣기 폴백 */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-4">
+              <p className="mb-1 text-sm font-medium text-gray-700">
+                캡션 직접 붙여넣기
+              </p>
+              <p className="mb-3 text-xs text-gray-400">
+                인스타그램 앱에서 게시글 캡션을 복사해서 붙여넣으세요
+              </p>
+              <textarea
+                value={manualCaption}
+                onChange={(e) => setManualCaption(e.target.value)}
+                placeholder="게시글 캡션을 여기에 붙여넣으세요..."
+                rows={5}
+                className="w-full rounded-xl border border-gray-200 p-3 text-sm placeholder:text-gray-300 focus:border-black focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  if (manualCaption.trim()) runWithCaption(manualCaption.trim());
+                }}
+                disabled={!manualCaption.trim()}
+                className="mt-2 h-11 w-full rounded-xl bg-black text-sm font-medium text-white disabled:opacity-40"
+              >
+                가게 찾기
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-xs text-gray-400">또는</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+
             <UrlInput
               initialUrl={instagramUrl}
               onSubmit={handleSubmit}

@@ -90,9 +90,49 @@ export function useExtract() {
     }
   }
 
+  // 캡션을 직접 붙여넣어 분석 (크롤링 실패 시 폴백)
+  async function runWithCaption(caption: string) {
+    setState({ step: "extracting", places: [], error: null, caption });
+
+    try {
+      const res = await fetch("/api/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caption }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setState((s) => ({
+          ...s,
+          step: "error",
+          error: data.error ?? "AI 분석에 실패했습니다",
+        }));
+        return;
+      }
+
+      if (!data.places || data.places.length === 0) {
+        setState((s) => ({
+          ...s,
+          step: "error",
+          error: "이 게시글에서 가게 정보를 찾지 못했어요",
+        }));
+        return;
+      }
+
+      setState((s) => ({ ...s, step: "done", places: data.places }));
+    } catch {
+      setState((s) => ({
+        ...s,
+        step: "error",
+        error: "AI 분석 중 오류가 발생했습니다",
+      }));
+    }
+  }
+
   function reset() {
     setState({ step: "idle", places: [], error: null, caption: null });
   }
 
-  return { ...state, run, reset };
+  return { ...state, run, runWithCaption, reset };
 }
