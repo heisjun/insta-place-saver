@@ -1,0 +1,131 @@
+"use client";
+
+import ExtractResult from "@/components/place/ExtractResult";
+import UrlInput from "@/components/place/UrlInput";
+import AuthGuard from "@/components/layout/AuthGuard";
+import { useExtract } from "@/hooks/useExtract";
+import { extractInstagramUrl } from "@/lib/instagram";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+
+function AddContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { step, places, error, caption, run, reset } = useExtract();
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [allSaved, setAllSaved] = useState(false);
+
+  // 모바일 공유 또는 ?url= 파라미터로 자동 실행
+  useEffect(() => {
+    const raw =
+      searchParams.get("url") ||
+      searchParams.get("shared_url") ||
+      searchParams.get("shared_text") ||
+      "";
+    const extracted = extractInstagramUrl(raw) ?? raw;
+    if (extracted && extracted.includes("instagram.com")) {
+      setInstagramUrl(extracted);
+      run(extracted);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleSubmit(url: string) {
+    setInstagramUrl(url);
+    setAllSaved(false);
+    run(url);
+  }
+
+  const isLoading = step === "scraping" || step === "extracting";
+
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      {/* 헤더 */}
+      <header className="flex h-14 items-center border-b border-gray-200 bg-white px-4">
+        <button
+          onClick={() => router.back()}
+          className="mr-3 text-gray-500 active:text-gray-900"
+          aria-label="뒤로"
+        >
+          ←
+        </button>
+        <h1 className="text-base font-semibold">장소 추가</h1>
+      </header>
+
+      <main className="flex-1 px-4 py-6">
+        {/* 완료 화면 */}
+        {allSaved && (
+          <div className="flex flex-col items-center gap-4 pt-12 text-center">
+            <div className="text-5xl">✅</div>
+            <p className="text-lg font-semibold text-gray-900">저장 완료!</p>
+            <p className="text-sm text-gray-500">장소가 지도에 추가됐어요</p>
+            <div className="mt-4 flex w-full flex-col gap-2">
+              <button
+                onClick={() => router.push("/map")}
+                className="h-12 w-full rounded-xl bg-black text-sm font-medium text-white"
+              >
+                지도에서 보기
+              </button>
+              <button
+                onClick={() => { reset(); setAllSaved(false); setInstagramUrl(""); }}
+                className="h-12 w-full rounded-xl border border-gray-200 bg-white text-sm text-gray-600"
+              >
+                계속 추가하기
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 로딩 */}
+        {!allSaved && isLoading && (
+          <div className="flex flex-col items-center gap-3 pt-16 text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" />
+            <p className="text-sm font-medium text-gray-700">
+              {step === "scraping"
+                ? "게시글 분석 중..."
+                : "AI가 가게 정보를 찾고 있어요..."}
+            </p>
+            <p className="text-xs text-gray-400">잠깐만 기다려주세요</p>
+          </div>
+        )}
+
+        {/* 에러 */}
+        {!allSaved && step === "error" && (
+          <div className="flex flex-col gap-4">
+            <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-600">
+              {error}
+            </div>
+            <UrlInput
+              initialUrl={instagramUrl}
+              onSubmit={handleSubmit}
+            />
+          </div>
+        )}
+
+        {/* URL 입력 (초기) */}
+        {!allSaved && step === "idle" && (
+          <UrlInput onSubmit={handleSubmit} />
+        )}
+
+        {/* 결과 */}
+        {!allSaved && step === "done" && (
+          <ExtractResult
+            places={places}
+            instagramUrl={instagramUrl}
+            instagramCaption={caption}
+            onAllSaved={() => setAllSaved(true)}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default function AddPage() {
+  return (
+    <AuthGuard>
+      <Suspense>
+        <AddContent />
+      </Suspense>
+    </AuthGuard>
+  );
+}
