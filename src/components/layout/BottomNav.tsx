@@ -76,7 +76,8 @@ export default function BottomNav() {
   if (!mounted || HIDDEN_PATHS.includes(pathname)) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-16 items-center justify-around border-t border-gray-100 bg-white/95 backdrop-blur-sm pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-100 bg-white/95 backdrop-blur-sm pb-safe">
+      <div className="flex h-16 items-center justify-around">
       {NAV_ITEMS.map(({ href, label, icon }) => {
         const active = pathname === href;
         return (
@@ -100,6 +101,7 @@ export default function BottomNav() {
           </Link>
         );
       })}
+      </div>
     </nav>
   );
 }
