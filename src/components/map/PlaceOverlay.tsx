@@ -22,11 +22,11 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
   const color = getCategoryColor(place.category);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-10 animate-slide-up">
-      <div className="mx-4 mb-6 rounded-2xl bg-white shadow-xl">
+    <div className="absolute bottom-16 left-0 right-0 z-10 animate-slide-up">
+      <div className="bg-white shadow-xl">
         {/* 상단 컬러 바 */}
         <div
-          className="h-1 w-full rounded-t-2xl"
+          className="h-1 w-full"
           style={{ backgroundColor: color }}
         />
 
