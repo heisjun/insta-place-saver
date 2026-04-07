@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover", // iOS 노치/홈 인디케이터 대응
+  viewportFit: "cover",
   themeColor: "#000000",
 };
 
