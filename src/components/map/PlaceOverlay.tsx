@@ -22,7 +22,7 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
   const color = getCategoryColor(place.category);
 
   return (
-    <div className="absolute bottom-nav left-0 right-0 z-10 animate-slide-up">
+    <div className="fixed bottom-nav left-0 right-0 z-10 animate-slide-up">
       <div className="bg-white shadow-xl">
         {/* 상단 컬러 바 */}
         <div
@@ -39,7 +39,7 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
                 <span className="text-xs text-gray-400">{place.category}</span>
                 {place.visited && (
                   <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">
-                    방문완료
+                    다녀왔어요
                   </span>
                 )}
               </div>
