@@ -5,15 +5,22 @@ import CategoryFilter from "@/components/map/CategoryFilter";
 import PlaceCard from "@/components/place/PlaceCard";
 import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
+import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useRouter } from "next/navigation";
 
 function PlacesContent() {
   const router = useRouter();
+  const { supabase } = useSupabase();
   const { selected } = useCategoryFilter();
   const { data: places = [], isLoading } = usePlaces(selected ?? undefined);
 
   const visited = places.filter((p) => p.visited);
   const unvisited = places.filter((p) => !p.visited);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace("/login");
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 pb-16">
@@ -21,11 +28,10 @@ function PlacesContent() {
       <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4">
         <h1 className="text-base font-bold">저장한 장소</h1>
         <button
-          onClick={() => router.push("/add")}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-lg"
-          aria-label="장소 추가"
+          onClick={handleLogout}
+          className="rounded-full border border-gray-200 px-3 py-1.5 text-xs text-gray-500"
         >
-          +
+          로그아웃
         </button>
       </header>
 
