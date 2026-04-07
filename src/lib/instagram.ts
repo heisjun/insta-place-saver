@@ -1,13 +1,17 @@
-// Instagram 비공식 GraphQL API를 사용한 캡션 크롤링
+// Instagram 캡션 크롤링 - Apify Instagram Scraper 사용
 //
-// 주의: doc_id와 응답 JSON 경로는 Instagram 변경 시 깨질 수 있음.
-// 동작하지 않으면 Chrome DevTools → instagram.com 접속 → Network 탭에서
-// graphql 요청을 찾아 새 doc_id와 응답 구조를 확인 후 업데이트.
+// Apify가 자체 서버에서 크롤링 후 JSON 반환 → TLS/IP/Cloudflare 문제 없음
+// Actor ID: shu8hvrXbJbY3Eb9W (apify/instagram-scraper)
+// 무료 플랜: $5/월 크레딧 제공, 100회 호출 시 약 $0.1~0.5 소비
+//
+// 환경변수: APIFY_TOKEN (apify.com → Settings → API tokens)
 
 const SHORTCODE_REGEX =
   /instagram\.com\/(?:p|reel|reels)\/([A-Za-z0-9_-]+)/;
-const GRAPHQL_URL = "https://www.instagram.com/api/graphql";
-const DOC_ID = "10015901848480474"; // 2025년 기준 동작
+
+const APIFY_ACTOR_ID = "shu8hvrXbJbY3Eb9W";
+// run-sync-get-dataset-items: 실행 완료 후 결과를 바로 반환 (최대 300초)
+const APIFY_RUN_URL = `https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/run-sync-get-dataset-items`;
 
 export interface ScrapeResult {
   caption: string;
@@ -28,38 +32,50 @@ export async function scrapeInstagramCaption(
   if (!match) throw new Error("유효하지 않은 인스타그램 URL입니다");
   const shortcode = match[1];
 
-  const response = await fetch(GRAPHQL_URL, {
+  const token = process.env.APIFY_TOKEN;
+  if (!token) throw new Error("APIFY_TOKEN 환경변수가 설정되지 않았습니다");
+
+  const res = await fetch(`${APIFY_RUN_URL}?token=${token}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "X-Ig-App-Id": process.env.INSTAGRAM_X_IG_APP_ID!,
-      Cookie: process.env.INSTAGRAM_COOKIE!,
-      Referer: "https://www.instagram.com/",
-      "X-Requested-With": "XMLHttpRequest",
-    },
-    body: new URLSearchParams({
-      variables: JSON.stringify({ shortcode }),
-      doc_id: DOC_ID,
-      lsd: "AVqbxe3J_YA",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      directUrls: [`https://www.instagram.com/p/${shortcode}/`],
+      resultsType: "posts",
+      resultsLimit: 1,
     }),
+    signal: AbortSignal.timeout(120_000), // Apify 실행 최대 2분 대기
   });
 
-  if (!response.ok) {
-    throw new Error(`Instagram 요청 실패: ${response.status}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Apify 요청 실패: ${res.status} ${text}`);
   }
 
-  const data = await response.json();
-  const media = data?.data?.xdt_shortcode_media;
+  const items: ApifyPost[] = await res.json();
 
-  if (!media) {
-    throw new Error("게시글 데이터를 찾을 수 없습니다. 비공개 계정이거나 삭제된 게시글일 수 있습니다.");
+  if (!items || items.length === 0) {
+    throw new Error(
+      "게시글 데이터를 가져오지 못했습니다. 비공개 계정이거나 삭제된 게시글일 수 있습니다."
+    );
   }
 
-  const caption =
-    media.edge_media_to_caption?.edges?.[0]?.node?.text ?? "";
-  const authorName = media.owner?.username ?? "";
+  const post = items[0];
+  const caption = post.caption ?? post.description ?? "";
+  const authorName = post.ownerUsername ?? post.username ?? "";
+
+  if (!caption) {
+    throw new Error("캡션이 없는 게시글입니다.");
+  }
 
   return { caption, authorName, shortcode };
+}
+
+// Apify Instagram Scraper 응답 타입 (주요 필드만)
+interface ApifyPost {
+  caption?: string;
+  description?: string;
+  ownerUsername?: string;
+  username?: string;
+  shortCode?: string;
+  url?: string;
 }

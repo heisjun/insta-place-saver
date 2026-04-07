@@ -1,7 +1,7 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ExtractedPlace } from "@/lib/types";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const SYSTEM_PROMPT = `당신은 인스타그램 맛집/카페 게시글 분석 전문가입니다.
 사용자가 제공한 캡션 텍스트에서 가게 정보를 추출하세요.
@@ -31,19 +31,14 @@ const SYSTEM_PROMPT = `당신은 인스타그램 맛집/카페 게시글 분석 
 export async function extractPlacesFromCaption(
   caption: string
 ): Promise<ExtractedPlace[]> {
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: caption }],
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    systemInstruction: SYSTEM_PROMPT,
   });
 
-  const text = response.content
-    .filter((block) => block.type === "text")
-    .map((block) => (block as { type: "text"; text: string }).text)
-    .join("");
+  const result = await model.generateContent(caption);
+  const text = result.response.text();
 
-  // ```json 코드 펜스 제거 후 파싱
   const cleaned = text.replace(/```json\s*|```/g, "").trim();
   const parsed = JSON.parse(cleaned);
 
