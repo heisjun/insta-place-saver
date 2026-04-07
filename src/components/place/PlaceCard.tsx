@@ -1,0 +1,131 @@
+"use client";
+
+import { Place } from "@/lib/types";
+import { getCategoryColor } from "@/lib/mapColors";
+import { useDeletePlace, useUpdatePlace } from "@/hooks/usePlaces";
+import { useRef, useState } from "react";
+
+interface PlaceCardProps {
+  place: Place;
+}
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  맛집: "🍽️",
+  카페: "☕",
+  디저트: "🍰",
+  술집: "🍺",
+  기타: "📍",
+};
+
+export default function PlaceCard({ place }: PlaceCardProps) {
+  const { mutate: updatePlace } = useUpdatePlace();
+  const { mutate: deletePlace, isPending: isDeleting } = useDeletePlace();
+
+  const [translateX, setTranslateX] = useState(0);
+  const [isSwiped, setIsSwiped] = useState(false);
+  const startXRef = useRef<number | null>(null);
+  const DELETE_THRESHOLD = -72;
+
+  const color = getCategoryColor(place.category);
+
+  // 스와이프 핸들러
+  function onTouchStart(e: React.TouchEvent) {
+    startXRef.current = e.touches[0].clientX;
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (startXRef.current === null) return;
+    const dx = e.touches[0].clientX - startXRef.current;
+    if (dx < 0) setTranslateX(Math.max(dx, DELETE_THRESHOLD));
+  }
+
+  function onTouchEnd() {
+    if (translateX < DELETE_THRESHOLD / 2) {
+      setTranslateX(DELETE_THRESHOLD);
+      setIsSwiped(true);
+    } else {
+      setTranslateX(0);
+      setIsSwiped(false);
+    }
+    startXRef.current = null;
+  }
+
+  function handleClose() {
+    setTranslateX(0);
+    setIsSwiped(false);
+  }
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* 삭제 버튼 (뒤에 위치) */}
+      <div className="absolute right-0 top-0 flex h-full w-[72px] items-center justify-center bg-red-500">
+        <button
+          onClick={() => deletePlace(place.id)}
+          disabled={isDeleting}
+          className="flex flex-col items-center gap-1 text-white"
+        >
+          <span className="text-lg">{isDeleting ? "..." : "🗑️"}</span>
+          <span className="text-xs">삭제</span>
+        </button>
+      </div>
+
+      {/* 카드 본체 */}
+      <div
+        style={{ transform: `translateX(${translateX}px)` }}
+        className="relative z-10 bg-white transition-transform duration-150"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onClick={isSwiped ? handleClose : undefined}
+      >
+        <div className="flex items-center gap-3 px-4 py-3">
+          {/* 카테고리 컬러 인디케이터 */}
+          <div
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-lg"
+            style={{ backgroundColor: `${color}20` }}
+          >
+            {CATEGORY_EMOJI[place.category]}
+          </div>
+
+          {/* 정보 */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-semibold text-gray-900">
+                {place.name}
+              </p>
+              {place.visited && (
+                <span className="flex-shrink-0 rounded-full bg-green-100 px-1.5 py-0.5 text-xs text-green-600">
+                  방문
+                </span>
+              )}
+            </div>
+            {place.address && (
+              <p className="truncate text-xs text-gray-400">{place.address}</p>
+            )}
+            {place.memo && (
+              <p className="truncate text-xs text-gray-500 mt-0.5">{place.memo}</p>
+            )}
+          </div>
+
+          {/* 방문 토글 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              updatePlace({ id: place.id, visited: !place.visited });
+            }}
+            className={`flex-shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              place.visited
+                ? "border-green-200 bg-green-50 text-green-600"
+                : "border-gray-200 bg-white text-gray-400"
+            }`}
+          >
+            {place.visited ? "방문완료" : "미방문"}
+          </button>
+        </div>
+
+        {/* 하단 구분선 */}
+        <div className="mx-4 h-px bg-gray-100" />
+      </div>
+    </div>
+  );
+}
