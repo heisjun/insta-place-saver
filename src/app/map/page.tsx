@@ -35,8 +35,8 @@ function MapContent() {
         <CategoryFilter />
       </div>
 
-      {/* 지도 */}
-      <div className="h-full w-full">
+      {/* 지도 - absolute로 전체 영역 채움 */}
+      <div className="absolute inset-0">
         {isLoading ? (
           <div className="flex h-full items-center justify-center bg-gray-50">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" />

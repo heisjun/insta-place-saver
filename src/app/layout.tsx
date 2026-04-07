@@ -16,8 +16,13 @@ export default async function RootLayout({
 }) {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // getUser()는 서버에서 세션을 직접 검증 — getSession()보다 안전
+  const session = user
+    ? (await supabase.auth.getSession()).data.session
+    : null;
 
   return (
     <html lang="ko" className="h-full">
