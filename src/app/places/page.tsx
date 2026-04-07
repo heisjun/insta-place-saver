@@ -3,6 +3,7 @@
 import AuthGuard from "@/components/layout/AuthGuard";
 import CategoryFilter from "@/components/map/CategoryFilter";
 import PlaceCard from "@/components/place/PlaceCard";
+import PlaceCardSkeleton from "@/components/place/PlaceCardSkeleton";
 import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
@@ -23,7 +24,7 @@ function PlacesContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 pb-nav">
+    <div className="flex h-full flex-col bg-gray-50 pb-nav overflow-hidden">
       {/* 헤더 */}
       <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4">
         <h1 className="text-base font-bold">저장한 장소</h1>
@@ -40,10 +41,15 @@ function PlacesContent() {
         <CategoryFilter />
       </div>
 
-      {/* 로딩 */}
+      {/* 로딩 스켈레톤 */}
       {isLoading && (
-        <div className="flex flex-1 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" />
+        <div className="flex-1 overflow-y-auto">
+          <div className="mt-3">
+            <div className="px-4 pb-2">
+              <div className="h-3 w-24 rounded-full bg-gray-100 animate-pulse" />
+            </div>
+            <PlaceCardSkeleton />
+          </div>
         </div>
       )}
 
@@ -64,11 +70,11 @@ function PlacesContent() {
       {/* 목록 */}
       {!isLoading && places.length > 0 && (
         <div className="flex-1 overflow-y-auto">
-          {/* 미방문 */}
+          {/* 가고싶어요 */}
           {unvisited.length > 0 && (
             <section className="mt-3">
               <h2 className="px-4 pb-2 text-xs font-semibold text-gray-400">
-                가고 싶어요 ({unvisited.length})
+                가고싶어요 ({unvisited.length})
               </h2>
               <div className="bg-white">
                 {unvisited.map((place) => (
@@ -78,11 +84,11 @@ function PlacesContent() {
             </section>
           )}
 
-          {/* 방문 완료 */}
+          {/* 다녀왔어요 */}
           {visited.length > 0 && (
             <section className="mt-3">
               <h2 className="px-4 pb-2 text-xs font-semibold text-gray-400">
-                방문 완료 ({visited.length})
+                다녀왔어요 ({visited.length})
               </h2>
               <div className="bg-white">
                 {visited.map((place) => (

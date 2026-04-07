@@ -14,9 +14,9 @@ const NAV_ITEMS = [
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        fill={active ? "currentColor" : "none"}
+        fill="none"
         stroke="currentColor"
-        strokeWidth={active ? 0 : 1.8}
+        strokeWidth={active ? 2.4 : 1.8}
         className="h-6 w-6"
       >
         <path
@@ -52,9 +52,9 @@ const NAV_ITEMS = [
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        fill={active ? "currentColor" : "none"}
+        fill="none"
         stroke="currentColor"
-        strokeWidth={active ? 0 : 1.8}
+        strokeWidth={active ? 2.4 : 1.8}
         className="h-6 w-6"
       >
         <path
@@ -78,29 +78,29 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-100 bg-white/95 backdrop-blur-sm pb-safe">
       <div className="flex h-16 items-center justify-around">
-      {NAV_ITEMS.map(({ href, label, icon }) => {
-        const active = pathname === href;
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={`flex flex-col items-center gap-1 ${
-              href === "/add" ? "-mt-4" : ""
-            }`}
-          >
-            <span className={active ? "text-black" : "text-gray-400"}>
-              {icon(active)}
-            </span>
-            {href !== "/add" && (
-              <span
-                className={`text-xs ${active ? "font-semibold text-black" : "text-gray-400"}`}
-              >
-                {label}
+        {NAV_ITEMS.map(({ href, label, icon }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex flex-col items-center gap-1 ${
+                href === "/add" ? "-mt-4" : ""
+              }`}
+            >
+              <span className={active ? "text-black" : "text-gray-400"}>
+                {icon(active)}
               </span>
-            )}
-          </Link>
-        );
-      })}
+              {href !== "/add" && (
+                <span
+                  className={`text-xs ${active ? "font-semibold text-black" : "text-gray-400"}`}
+                >
+                  {label}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

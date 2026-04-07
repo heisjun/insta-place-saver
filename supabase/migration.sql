@@ -16,6 +16,7 @@ CREATE TABLE places (
   instagram_url TEXT,
   instagram_caption TEXT,
   visited BOOLEAN DEFAULT FALSE,
+  rating NUMERIC(3,1),
   kakao_place_id TEXT,
   kakao_place_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -54,6 +55,9 @@ CREATE POLICY "Users can update own places"
 CREATE POLICY "Users can delete own places"
   ON places FOR DELETE
   USING (auth.uid() = user_id);
+
+-- rating 컬럼 추가 (기존 테이블이 있는 경우 아래 ALTER 사용)
+-- ALTER TABLE places ADD COLUMN IF NOT EXISTS rating NUMERIC(3,1);
 
 -- 인덱스
 CREATE INDEX idx_places_user_id ON places(user_id);
