@@ -18,6 +18,8 @@ export function usePlaces(category?: PlaceCategory) {
       if (!res.ok) throw new Error("장소 목록을 불러오지 못했습니다");
       return res.json();
     },
+    staleTime: 30_000,   // 30초 내 재방문 시 캐시 즉시 표시
+    gcTime: 5 * 60_000,  // 5분간 캐시 유지
   });
 }
 
@@ -44,7 +46,7 @@ export function useSavePlace() {
   });
 }
 
-// 수정
+// 수정 (낙관적 업데이트)
 export function useUpdatePlace() {
   const queryClient = useQueryClient();
 
@@ -61,7 +63,29 @@ export function useUpdatePlace() {
       }
       return res.json() as Promise<Place>;
     },
-    onSuccess: () => {
+    onMutate: async ({ id, ...updates }) => {
+      // 진행 중인 refetch 취소
+      await queryClient.cancelQueries({ queryKey: ["places"] });
+
+      // 현재 캐시 스냅샷 저장
+      const previousQueriesData = queryClient.getQueriesData<Place[]>({ queryKey: ["places"] });
+
+      // 모든 places 쿼리 캐시를 낙관적으로 업데이트
+      queryClient.setQueriesData<Place[]>({ queryKey: ["places"] }, (old) =>
+        old?.map((p) => (p.id === id ? { ...p, ...updates } : p)) ?? old
+      );
+
+      return { previousQueriesData };
+    },
+    onError: (_err, _vars, context) => {
+      // 실패 시 롤백
+      if (context?.previousQueriesData) {
+        for (const [queryKey, data] of context.previousQueriesData) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["places"] });
     },
   });
