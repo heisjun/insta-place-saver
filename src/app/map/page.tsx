@@ -19,7 +19,7 @@ function MapContent() {
   const handleMarkerClick = useCallback((place: Place) => setSelectedPlace(place), []);
 
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative h-dvh overflow-hidden">
       {/* 헤더 */}
       <header className="absolute left-0 right-0 top-0 z-10 flex h-14 items-center justify-between bg-white/90 px-4 backdrop-blur-sm border-b border-gray-100">
         <h1 className="text-base font-bold">내 맛집 지도</h1>
