@@ -41,8 +41,8 @@ export default async function RootLayout({
     : null;
 
   return (
-    <html lang="ko" className="h-full">
-      <body className="h-full bg-white text-gray-900">
+    <html lang="ko" className="h-full overflow-hidden">
+      <body className="h-full overflow-hidden bg-white text-gray-900">
         <SupabaseProvider initialSession={session}>
           <QueryProvider>
             {children}
