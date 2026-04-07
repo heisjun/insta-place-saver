@@ -8,13 +8,15 @@ import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { Place } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 function MapContent() {
   const router = useRouter();
   const { selected } = useCategoryFilter();
   const { data: places = [], isLoading } = usePlaces(selected ?? undefined);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+
+  const handleMarkerClick = useCallback((place: Place) => setSelectedPlace(place), []);
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -37,16 +39,10 @@ function MapContent() {
 
       {/* 지도 - absolute로 전체 영역 채움 */}
       <div className="absolute inset-0">
-        {isLoading ? (
-          <div className="flex h-full items-center justify-center bg-gray-50">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" />
-          </div>
-        ) : (
-          <KakaoMap
-            places={places}
-            onMarkerClick={(place) => setSelectedPlace(place)}
-          />
-        )}
+        <KakaoMap
+          places={places}
+          onMarkerClick={handleMarkerClick}
+        />
       </div>
 
       {/* 장소 없을 때 안내 */}
