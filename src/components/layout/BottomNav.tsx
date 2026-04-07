@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const HIDDEN_PATHS = ["/login", "/"];
 
@@ -68,8 +69,11 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
 
-  if (HIDDEN_PATHS.includes(pathname)) return null;
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted || HIDDEN_PATHS.includes(pathname)) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 flex h-16 items-center justify-around border-t border-gray-100 bg-white/95 backdrop-blur-sm pb-safe">
