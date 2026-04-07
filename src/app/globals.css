@@ -27,6 +27,16 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* 페이지 하단: BottomNav(64px) + safe area */
+.pb-nav {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+/* 오버레이 bottom 위치: BottomNav(64px) + safe area */
+.bottom-nav {
+  bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
 @keyframes slide-up {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }

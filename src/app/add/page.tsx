@@ -39,7 +39,7 @@ function AddContent() {
   const isLoading = step === "scraping" || step === "extracting";
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gray-50 pb-nav">
       {/* 헤더 */}
       <header className="flex h-14 items-center border-b border-gray-200 bg-white px-4">
         <button

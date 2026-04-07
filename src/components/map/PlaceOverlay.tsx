@@ -22,7 +22,7 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
   const color = getCategoryColor(place.category);
 
   return (
-    <div className="absolute bottom-16 left-0 right-0 z-10 animate-slide-up">
+    <div className="absolute bottom-nav left-0 right-0 z-10 animate-slide-up">
       <div className="bg-white shadow-xl">
         {/* 상단 컬러 바 */}
         <div
