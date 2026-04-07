@@ -12,7 +12,7 @@ export interface Place {
   instagram_url: string | null;
   instagram_caption: string | null;
   visited: boolean;
-  rating: number | null;
+  rating?: number | null;
   kakao_place_id: string | null;
   kakao_place_url: string | null;
   created_at: string;
