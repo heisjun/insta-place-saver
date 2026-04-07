@@ -16,7 +16,7 @@ function PlacesContent() {
   const unvisited = places.filter((p) => !p.visited);
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gray-50 pb-16">
       {/* 헤더 */}
       <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4">
         <h1 className="text-base font-bold">저장한 장소</h1>
