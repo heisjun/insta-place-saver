@@ -25,17 +25,16 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
     <div className="absolute bottom-nav left-0 right-0 z-10 animate-slide-up">
       <div className="bg-white shadow-xl">
         {/* 상단 컬러 바 */}
-        <div
-          className="h-1 w-full"
-          style={{ backgroundColor: color }}
-        />
+        <div className="h-1 w-full" style={{ backgroundColor: color }} />
 
         <div className="p-4">
           {/* 헤더 */}
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-2">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm">{CATEGORY_LABEL[place.category]}</span>
+                <span className="text-sm">
+                  {CATEGORY_LABEL[place.category]}
+                </span>
                 <span className="text-xs text-gray-400">{place.category}</span>
                 {place.visited && (
                   <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">
@@ -51,9 +50,6 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
               )}
               {place.memo && (
                 <p className="mt-1.5 text-sm text-gray-600">{place.memo}</p>
-              )}
-              {place.memo && (
-                <p className="mt-1.5 text-sm text-gray-700">{place.memo}</p>
               )}
             </div>
             <button
