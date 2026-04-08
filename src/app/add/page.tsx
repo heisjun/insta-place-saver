@@ -146,7 +146,10 @@ function AddContent() {
               />
               <button
                 onClick={() => {
-                  if (manualCaption.trim()) runWithCaption(manualCaption.trim());
+                  if (manualCaption.trim()) {
+                    runWithCaption(manualCaption.trim());
+                    setManualCaption("");
+                  }
                 }}
                 disabled={!manualCaption.trim()}
                 className="mt-2 h-11 w-full rounded-xl bg-black text-sm font-medium text-white disabled:opacity-40"

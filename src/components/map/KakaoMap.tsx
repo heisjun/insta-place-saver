@@ -86,12 +86,7 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
       });
 
       maps.event.addListener(marker, "click", () => {
-        // 클릭한 마커를 지도 중심으로 이동
-        // 오버레이가 하단을 덮으므로 중심을 약간 위로 offset
-        const map = mapRef.current;
-        const currentLevel = map.getLevel();
-        map.setLevel(Math.min(currentLevel, 5)); // 너무 멀면 줌인
-        map.panTo(position);
+        mapRef.current.panTo(position);
         onMarkerClick(place);
       });
 

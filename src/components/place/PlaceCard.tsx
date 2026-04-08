@@ -142,11 +142,9 @@ export default function PlaceCard({ place, onPress }: PlaceCardProps) {
               {place.address && (
                 <p className="truncate text-xs text-gray-400">{place.address}</p>
               )}
-              {place.visited && place.rating != null ? (
+              {place.visited && place.rating != null && (
                 <StarDisplay rating={place.rating} />
-              ) : place.memo ? (
-                <p className="truncate text-xs text-gray-500 mt-0.5">{place.memo}</p>
-              ) : null}
+              )}
             </div>
 
             {/* 방문 토글 버튼 */}
