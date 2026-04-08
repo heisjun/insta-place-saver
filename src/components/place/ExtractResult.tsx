@@ -46,7 +46,7 @@ export default function ExtractResult({
       category: place.category,
       latitude: parseFloat(kakao.y),
       longitude: parseFloat(kakao.x),
-      memo: null,
+      memo: place.description || null,
       instagram_url: instagramUrl,
       instagram_caption: instagramCaption,
       visited: false,

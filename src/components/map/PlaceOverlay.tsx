@@ -50,6 +50,9 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
                 <p className="mt-0.5 text-xs text-gray-500">{place.address}</p>
               )}
               {place.memo && (
+                <p className="mt-1.5 text-sm text-gray-600">{place.memo}</p>
+              )}
+              {place.memo && (
                 <p className="mt-1.5 text-sm text-gray-700">{place.memo}</p>
               )}
             </div>
