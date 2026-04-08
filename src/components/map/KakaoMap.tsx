@@ -44,15 +44,15 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
     if (userMarkerRef.current) userMarkerRef.current.setMap(null);
 
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-        <circle cx="20" cy="20" r="19" fill="#FF3B30" fill-opacity="0.2"/>
-        <circle cx="20" cy="20" r="10" fill="#FF3B30" stroke="white" stroke-width="3"/>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11" fill="#FF3B30" fill-opacity="0.2"/>
+        <circle cx="12" cy="12" r="6" fill="#FF3B30" stroke="white" stroke-width="2"/>
       </svg>`;
 
     const markerImage = new maps.MarkerImage(
       `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-      new maps.Size(40, 40),
-      { offset: new maps.Point(20, 20) }
+      new maps.Size(24, 24),
+      { offset: new maps.Point(12, 12) },
     );
 
     userMarkerRef.current = new maps.Marker({
@@ -79,7 +79,10 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const userPos = new maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+        const userPos = new maps.LatLng(
+          pos.coords.latitude,
+          pos.coords.longitude,
+        );
         userPosRef.current = userPos;
         mapRef.current.setCenter(userPos);
         mapRef.current.setLevel(5);
@@ -87,7 +90,7 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
       },
       () => {
         // 위치 거부 시 서울 기본값 유지
-      }
+      },
     );
   }, [loaded]);
 
@@ -119,7 +122,7 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
       const markerImage = new maps.MarkerImage(
         `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
         new maps.Size(28, 36),
-        { offset: new maps.Point(14, 36) }
+        { offset: new maps.Point(14, 36) },
       );
 
       const marker = new maps.Marker({
@@ -141,7 +144,7 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
     // 마커 전체가 보이도록 지도 범위 조정
     if (places.length === 1) {
       mapRef.current.setCenter(
-        new maps.LatLng(places[0].latitude, places[0].longitude)
+        new maps.LatLng(places[0].latitude, places[0].longitude),
       );
       mapRef.current.setLevel(4);
     } else {
@@ -165,13 +168,16 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { maps } = window.kakao;
-        const userPos = new maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+        const userPos = new maps.LatLng(
+          pos.coords.latitude,
+          pos.coords.longitude,
+        );
         userPosRef.current = userPos;
         placeUserMarker(userPos);
         map.panTo(userPos);
         setLocating(false);
       },
-      () => setLocating(false)
+      () => setLocating(false),
     );
   }
 
@@ -189,10 +195,20 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
         {locating ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-black" />
         ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5 text-gray-700">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            className="h-5 w-5 text-gray-700"
+          >
             <circle cx="12" cy="12" r="3" />
             <path strokeLinecap="round" d="M12 2v3m0 14v3M2 12h3m14 0h3" />
-            <path strokeLinecap="round" d="M12 5a7 7 0 1 0 0 14A7 7 0 0 0 12 5z" />
+            <path
+              strokeLinecap="round"
+              d="M12 5a7 7 0 1 0 0 14A7 7 0 0 0 12 5z"
+            />
           </svg>
         )}
       </button>
