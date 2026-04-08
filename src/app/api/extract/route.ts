@@ -31,12 +31,8 @@ export async function POST(request: NextRequest) {
   // 2. 각 가게에 대해 카카오맵 검색 병렬 실행
   const places = await Promise.all(
     extracted.map(async (place) => {
-      const query = place.address
-        ? `${place.name} ${place.address}`
-        : place.name;
-
       try {
-        const kakao = await searchKakaoPlace(query);
+        const kakao = await searchKakaoPlace(place.name, place.address);
         return { ...place, kakao };
       } catch {
         return { ...place, kakao: null };
