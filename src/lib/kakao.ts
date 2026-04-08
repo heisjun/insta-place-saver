@@ -37,11 +37,36 @@ async function searchOnce(query: string): Promise<KakaoSearchResult | null> {
   };
 }
 
+/** 주소로 좌표를 직접 검색 (카카오맵 미등록 신규 장소 대응) */
+async function searchByAddress(
+  name: string,
+  address: string
+): Promise<KakaoSearchResult | null> {
+  const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`;
+  const response = await fetch(url, {
+    headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_API_KEY}` },
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  const doc = data.documents?.[0];
+  if (!doc) return null;
+
+  return {
+    place_name: name,
+    address_name: doc.address?.address_name ?? address,
+    road_address_name: doc.road_address?.address_name ?? address,
+    x: doc.x,
+    y: doc.y,
+    place_url: "",
+    id: "",
+  };
+}
+
 export async function searchKakaoPlace(
   name: string,
   address: string | null
 ): Promise<KakaoSearchResult | null> {
-  // 1차: 가게명 + 구 단위 (e.g. "괄호 서울 마포구")
+  // 1차: 가게명 + 구 단위 (e.g. "팔 프렐류드 서울 종로구")
   const region = extractRegion(address);
   if (region) {
     const result = await searchOnce(`${name} ${region}`);
@@ -49,5 +74,11 @@ export async function searchKakaoPlace(
   }
 
   // 2차: 가게명만
-  return searchOnce(name);
+  const fallback = await searchOnce(name);
+  if (fallback) return fallback;
+
+  // 3차: 주소 좌표 검색 (카카오맵 미등록 신규 장소 대응)
+  if (address) return searchByAddress(name, address);
+
+  return null;
 }
