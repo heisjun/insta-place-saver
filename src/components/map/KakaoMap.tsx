@@ -19,7 +19,8 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
-  const userPosRef = useRef<any>(null); // 현재 위치 LatLng 캐시
+  const userPosRef = useRef<any>(null);
+  const userMarkerRef = useRef<any>(null); // 현재 위치 마커
   const [loaded, setLoaded] = useState(false);
   const [locating, setLocating] = useState(false);
 
@@ -35,6 +36,32 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
     script.onload = () => window.kakao.maps.load(() => setLoaded(true));
     document.head.appendChild(script);
   }, []);
+
+  function placeUserMarker(userPos: any) {
+    const { maps } = window.kakao;
+
+    // 기존 마커 제거
+    if (userMarkerRef.current) userMarkerRef.current.setMap(null);
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#FF3B30" stroke="white" stroke-width="2.5"/>
+        <circle cx="12" cy="12" r="4" fill="white"/>
+      </svg>`;
+
+    const markerImage = new maps.MarkerImage(
+      `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+      new maps.Size(24, 24),
+      { offset: new maps.Point(12, 12) }
+    );
+
+    userMarkerRef.current = new maps.Marker({
+      position: userPos,
+      image: markerImage,
+      map: mapRef.current,
+      zIndex: 10,
+    });
+  }
 
   // 지도 초기화 + 현재 위치 요청
   useEffect(() => {
@@ -56,6 +83,7 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
         userPosRef.current = userPos;
         mapRef.current.setCenter(userPos);
         mapRef.current.setLevel(5);
+        placeUserMarker(userPos);
       },
       () => {
         // 위치 거부 시 서울 기본값 유지
@@ -139,6 +167,7 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
         const { maps } = window.kakao;
         const userPos = new maps.LatLng(pos.coords.latitude, pos.coords.longitude);
         userPosRef.current = userPos;
+        placeUserMarker(userPos);
         map.panTo(userPos);
         setLocating(false);
       },
