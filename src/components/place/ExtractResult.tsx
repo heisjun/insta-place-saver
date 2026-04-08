@@ -16,14 +16,14 @@ interface Props {
   places: ExtractedPlaceWithKakao[];
   instagramUrl: string;
   instagramCaption: string | null;
-  onAllSaved: () => void;
+  onComplete: (savedCount: number) => void;
 }
 
 export default function ExtractResult({
   places,
   instagramUrl,
   instagramCaption,
-  onAllSaved,
+  onComplete,
 }: Props) {
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [skippedIds, setSkippedIds] = useState<Set<number>>(new Set());
@@ -46,7 +46,7 @@ export default function ExtractResult({
       category: place.category,
       latitude: parseFloat(kakao.y),
       longitude: parseFloat(kakao.x),
-      memo: null,
+      memo: place.description || null,
       instagram_url: instagramUrl,
       instagram_caption: instagramCaption,
       visited: false,
@@ -54,15 +54,15 @@ export default function ExtractResult({
       kakao_place_url: kakao.place_url,
     });
 
-    const next = new Set(savedIds).add(idx);
-    setSavedIds(next);
-    if (next.size + skippedIds.size === places.length) onAllSaved();
+    const nextSaved = new Set(savedIds).add(idx);
+    setSavedIds(nextSaved);
+    if (nextSaved.size + skippedIds.size === places.length) onComplete(nextSaved.size);
   }
 
   function handleSkip(idx: number) {
-    const next = new Set(skippedIds).add(idx);
-    setSkippedIds(next);
-    if (savedIds.size + next.size === places.length) onAllSaved();
+    const nextSkipped = new Set(skippedIds).add(idx);
+    setSkippedIds(nextSkipped);
+    if (savedIds.size + nextSkipped.size === places.length) onComplete(savedIds.size);
   }
 
   async function handleRetrySearch(place: ExtractedPlaceWithKakao, idx: number) {

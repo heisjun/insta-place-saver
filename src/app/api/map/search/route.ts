@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await searchKakaoPlace(query);
+    const result = await searchKakaoPlace(query, null);
     return NextResponse.json({ result });
   } catch (err) {
     console.error("[map/search]", err);

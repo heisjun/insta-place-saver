@@ -8,6 +8,7 @@ import RatingModal from "./RatingModal";
 
 interface PlaceCardProps {
   place: Place;
+  onPress?: () => void;
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -43,7 +44,7 @@ function StarDisplay({ rating }: { rating: number }) {
   );
 }
 
-export default function PlaceCard({ place }: PlaceCardProps) {
+export default function PlaceCard({ place, onPress }: PlaceCardProps) {
   const { mutate: updatePlace } = useUpdatePlace();
   const { mutate: deletePlace, isPending: isDeleting } = useDeletePlace();
   const [showRating, setShowRating] = useState(false);
@@ -120,7 +121,7 @@ export default function PlaceCard({ place }: PlaceCardProps) {
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
-          onClick={isSwiped ? handleClose : undefined}
+          onClick={isSwiped ? handleClose : onPress}
         >
           <div className="flex items-center gap-3 px-4 py-3">
             {/* 카테고리 컬러 인디케이터 */}
@@ -141,11 +142,9 @@ export default function PlaceCard({ place }: PlaceCardProps) {
               {place.address && (
                 <p className="truncate text-xs text-gray-400">{place.address}</p>
               )}
-              {place.visited && place.rating != null ? (
+              {place.visited && place.rating != null && (
                 <StarDisplay rating={place.rating} />
-              ) : place.memo ? (
-                <p className="truncate text-xs text-gray-500 mt-0.5">{place.memo}</p>
-              ) : null}
+              )}
             </div>
 
             {/* 방문 토글 버튼 */}
