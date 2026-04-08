@@ -3,11 +3,18 @@ import { KakaoSearchResult } from "@/lib/types";
 const KAKAO_SEARCH_URL =
   "https://dapi.kakao.com/v2/local/search/keyword.json";
 
-/** "서울 마포구 광성로6길 24 2층" → "서울 마포구" */
+/**
+ * "서울 종로구 진흥로 474 1층" → "서울 종로구"
+ * "경기도 수원시 팔달구 ..." → "경기도 수원시 팔달구"
+ * 주소 앞부분의 시/도+구/군/시 단위만 추출해 키워드 검색에 사용
+ */
 function extractRegion(address: string | null): string | null {
   if (!address) return null;
-  const match = address.match(/[가-힣]+\s*[시도]\s*[가-힣]+\s*[구군]/);
-  return match ? match[0] : null;
+  // 구/군 레벨 우선 추출, 없으면 시 레벨 fallback
+  const guMatch = address.match(/^.+?[구군]/);
+  if (guMatch) return guMatch[0].trim();
+  const siMatch = address.match(/^.+?시/);
+  return siMatch ? siMatch[0].trim() : null;
 }
 
 async function searchOnce(query: string): Promise<KakaoSearchResult | null> {
