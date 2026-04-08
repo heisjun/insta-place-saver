@@ -44,15 +44,15 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
     if (userMarkerRef.current) userMarkerRef.current.setMap(null);
 
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" fill="#FF3B30" stroke="white" stroke-width="2.5"/>
-        <circle cx="12" cy="12" r="4" fill="white"/>
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="19" fill="#FF3B30" fill-opacity="0.2"/>
+        <circle cx="20" cy="20" r="10" fill="#FF3B30" stroke="white" stroke-width="3"/>
       </svg>`;
 
     const markerImage = new maps.MarkerImage(
       `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-      new maps.Size(24, 24),
-      { offset: new maps.Point(12, 12) }
+      new maps.Size(40, 40),
+      { offset: new maps.Point(20, 20) }
     );
 
     userMarkerRef.current = new maps.Marker({
