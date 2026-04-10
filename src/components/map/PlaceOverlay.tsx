@@ -81,36 +81,39 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
         <div className="mx-auto mb-4 h-1 w-10 flex-shrink-0 rounded-full bg-gray-300" />
 
         {/* 인스타 이미지 가로 스크롤 캐러셀 */}
-        {place.instagram_image_urls && place.instagram_image_urls.length > 0 && (
-          <div
-            className="-mx-5 mb-4 flex gap-3 overflow-x-auto overflow-y-hidden px-5 pb-2 touch-pan-x snap-x snap-mandatory scrollbar-hide"
-            style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
-            // 가로 스크롤 영역에서 이벤트 버블링을 막아 상위 드래그와 충돌 방지
-            onTouchMove={(e) => {
-              const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
-              const dy = e.touches[0].clientY - touchStartY.current;
-              // 가로 스와이프 동작이 더 크면, 이벤트 버블링 중단 -> 내부 고유 터치 스크롤 보장
-              if (dx > dy) {
-                e.stopPropagation();
-              }
-            }}
-          >
-            {place.instagram_image_urls.map((url, i) => (
-              <div
-                key={i}
-                className="relative h-[120px] w-[120px] flex-shrink-0 snap-start overflow-hidden rounded-2xl bg-gray-100 aspect-square"
-              >
-                <Image
-                  src={url}
-                  alt={`place photo ${i + 1}`}
-                  fill
-                  className="object-cover pointer-events-none"
-                  unoptimized={false}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        {place.instagram_image_urls &&
+          place.instagram_image_urls.length > 0 && (
+            <div
+              className="-mr-5 mb-4 flex gap-2 overflow-x-auto overflow-y-hidden pb-2 touch-pan-x snap-x snap-mandatory"
+              style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
+              onTouchMove={(e) => {
+                const dx = Math.abs(
+                  e.touches[0].clientX - touchStartX.current,
+                );
+                const dy = e.touches[0].clientY - touchStartY.current;
+                if (dx > dy) {
+                  e.stopPropagation();
+                }
+              }}
+            >
+              {place.instagram_image_urls.map((url, i) => (
+                <div
+                  key={i}
+                  className="relative h-[120px] w-[120px] flex-shrink-0 snap-start overflow-hidden rounded-2xl bg-gray-100 aspect-square"
+                >
+                  <Image
+                    src={url}
+                    alt={`place photo ${i + 1}`}
+                    fill
+                    className="object-cover pointer-events-none"
+                    unoptimized={false}
+                  />
+                </div>
+              ))}
+              {/* 우측 끝 여백 스페이서 */}
+              <div className="w-3 flex-shrink-0" aria-hidden="true" />
+            </div>
+          )}
 
         {/* 텍스트 정보 */}
         <div className="flex flex-col">
