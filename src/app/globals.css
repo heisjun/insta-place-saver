@@ -45,3 +45,20 @@ body {
 .animate-slide-up {
   animation: slide-up 0.25s ease-out;
 }
+
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e9eaec 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* iOS 스피너 블레이드 */
+@keyframes ios-blade {
+  0%   { opacity: 1; }
+  100% { opacity: 0.15; }
+}
