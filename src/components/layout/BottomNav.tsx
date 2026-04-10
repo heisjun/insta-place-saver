@@ -40,7 +40,11 @@ const NAV_ITEMS = [
           strokeWidth={2}
           className="h-6 w-6"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
+          />
         </svg>
       </div>
     ),
@@ -77,7 +81,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-100 bg-white/95 backdrop-blur-sm pb-safe">
-      <div className="flex h-16 items-center justify-around">
+      <div className="flex h-14 items-center justify-around">
         {NAV_ITEMS.map(({ href, label, icon }) => {
           const active = pathname === href;
           return (
