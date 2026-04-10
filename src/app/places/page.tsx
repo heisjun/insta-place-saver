@@ -4,20 +4,16 @@ import AuthGuard from "@/components/layout/AuthGuard";
 import CategoryFilter from "@/components/map/CategoryFilter";
 import PlaceCard from "@/components/place/PlaceCard";
 import PlaceCardSkeleton from "@/components/place/PlaceCardSkeleton";
-import PlaceOverlay from "@/components/map/PlaceOverlay";
 import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
-import { Place } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 function PlacesContent() {
   const router = useRouter();
   const { supabase } = useSupabase();
   const { selected } = useCategoryFilter();
   const { data: places = [], isLoading } = usePlaces(selected ?? undefined);
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 
   const visited = places.filter((p) => p.visited);
   const unvisited = places.filter((p) => !p.visited);
@@ -82,7 +78,11 @@ function PlacesContent() {
               </h2>
               <div className="bg-white">
                 {unvisited.map((place) => (
-                  <PlaceCard key={place.id} place={place} onPress={() => setSelectedPlace(place)} />
+                  <PlaceCard
+                    key={place.id}
+                    place={place}
+                    onPress={() => router.push(`/places/${place.id}`)}
+                  />
                 ))}
               </div>
             </section>
@@ -96,7 +96,11 @@ function PlacesContent() {
               </h2>
               <div className="bg-white">
                 {visited.map((place) => (
-                  <PlaceCard key={place.id} place={place} onPress={() => setSelectedPlace(place)} />
+                  <PlaceCard
+                    key={place.id}
+                    place={place}
+                    onPress={() => router.push(`/places/${place.id}`)}
+                  />
                 ))}
               </div>
             </section>
@@ -104,13 +108,6 @@ function PlacesContent() {
 
           <div className="h-6" />
         </div>
-      )}
-
-      {selectedPlace && (
-        <PlaceOverlay
-          place={selectedPlace}
-          onClose={() => setSelectedPlace(null)}
-        />
       )}
     </div>
   );
