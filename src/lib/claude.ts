@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { ExtractedPlace } from "@/lib/types";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const SYSTEM_PROMPT = `당신은 인스타그램 맛집/카페 게시글 분석 전문가입니다.
 사용자가 제공한 캡션 텍스트에서 가게 정보를 추출하세요.
@@ -21,33 +21,54 @@ const SYSTEM_PROMPT = `당신은 인스타그램 맛집/카페 게시글 분석 
 주의사항:
 - 게시글 하나에 여러 가게가 언급될 수 있음 → 모두 추출
 - 광고 문구, 할인 정보, 이벤트 내용은 무시
-- 가게 정보가 없는 캡션이면 빈 배열 반환
+- 가게 정보가 없는 캡션이면 places를 빈 배열로 반환
 - 반드시 아래 JSON 형식으로만 응답 (다른 텍스트 없이)
 
 응답 형식:
-[
-  {
-    "name": "가게명",
-    "address": "주소 (없으면 null)",
-    "category": "맛집 | 카페 | 디저트 | 술집 | 기타",
-    "description": "간단 설명"
-  }
-]`;
+{
+  "places": [
+    {
+      "name": "가게명",
+      "address": "주소 (없으면 null)",
+      "category": "맛집 | 카페 | 디저트 | 술집 | 기타",
+      "description": "간단 설명"
+    }
+  ]
+}`;
+
+const MAX_RETRIES = 3;
 
 export async function extractPlacesFromCaption(
   caption: string
 ): Promise<ExtractedPlace[]> {
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    systemInstruction: SYSTEM_PROMPT,
-  });
+  let lastError: unknown;
 
-  const result = await model.generateContent(caption);
-  const text = result.response.text();
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: caption },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0,
+      });
 
-  const cleaned = text.replace(/```json\s*|```/g, "").trim();
-  const parsed = JSON.parse(cleaned);
+      const text = completion.choices[0].message.content ?? '{"places":[]}';
 
-  if (!Array.isArray(parsed)) return [];
-  return parsed;
+      const parsed = JSON.parse(text);
+      const result = Array.isArray(parsed.places) ? parsed.places : [];
+
+      return result as ExtractedPlace[];
+    } catch (err) {
+      lastError = err;
+      console.warn(`[extract] 시도 ${attempt}/${MAX_RETRIES} 실패:`, err);
+      if (attempt < MAX_RETRIES) {
+        await new Promise((res) => setTimeout(res, 500 * attempt));
+      }
+    }
+  }
+
+  throw lastError;
 }
