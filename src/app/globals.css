@@ -28,14 +28,14 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* 페이지 하단: BottomNav(64px) + safe area */
+/* 페이지 하단: BottomNav(56px) + safe area */
 .pb-nav {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
 }
 
-/* 오버레이 bottom 위치: BottomNav(64px) + safe area */
+/* 오버레이 bottom 위치: BottomNav(56px) + safe area */
 .bottom-nav {
-  bottom: calc(4rem + env(safe-area-inset-bottom));
+  bottom: calc(3.5rem + env(safe-area-inset-bottom));
 }
 
 @keyframes slide-up {

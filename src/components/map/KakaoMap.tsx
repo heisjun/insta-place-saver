@@ -1,8 +1,12 @@
 "use client";
 
-import { Place } from "@/lib/types";
-import { getCategoryColor } from "@/lib/mapColors";
-import { useEffect, useRef, useState } from "react";
+import { Place, PlaceCategory } from "@/lib/types";
+import {
+  createPictogramMarkerSvg,
+  createDotMarkerSvg,
+  ZOOM_THRESHOLD,
+} from "@/lib/markerIcons";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 interface KakaoMapProps {
   places: Place[];
@@ -16,16 +20,102 @@ declare global {
   }
 }
 
+/** 마커 + 라벨 + 카테고리를 묶어 관리 */
+interface MarkerData {
+  marker: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  label: any;  // CustomOverlay for place name
+  category: PlaceCategory;
+}
+
 export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const markersDataRef = useRef<MarkerData[]>([]);
   const userPosRef = useRef<any>(null);
-  const userMarkerRef = useRef<any>(null); // 현재 위치 마커
+  const userMarkerRef = useRef<any>(null);
+  const selectedIdxRef = useRef<number | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [locating, setLocating] = useState(false);
 
+  // ──────────────────────────────────────────────
+  // 마커 이미지 생성 헬퍼
+  // ──────────────────────────────────────────────
+  const createDotImage = useCallback((category: PlaceCategory) => {
+    const { maps } = window.kakao;
+    const svg = createDotMarkerSvg(category);
+    return new maps.MarkerImage(
+      `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+      new maps.Size(18, 18),
+      {
+        offset: new maps.Point(9, 9),
+        shape: "rect",
+        coords: "0,0,18,18",
+      },
+    );
+  }, []);
+
+  const createPictogramImage = useCallback((category: PlaceCategory) => {
+    const { maps } = window.kakao;
+    const svg = createPictogramMarkerSvg(category);
+    return new maps.MarkerImage(
+      `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+      new maps.Size(32, 42),
+      { offset: new maps.Point(16, 42) },
+    );
+  }, []);
+
+  // ──────────────────────────────────────────────
+  // 선택된 마커를 픽토그램으로, 이전 선택 해제
+  // ──────────────────────────────────────────────
+  const selectMarker = useCallback(
+    (idx: number) => {
+      // 이전 선택 마커를 도트로 복귀
+      if (selectedIdxRef.current !== null && selectedIdxRef.current !== idx) {
+        const prev = markersDataRef.current[selectedIdxRef.current];
+        if (prev) {
+          prev.marker.setImage(createDotImage(prev.category));
+          prev.marker.setZIndex(0);
+        }
+      }
+      // 새 마커를 픽토그램으로 변경
+      const data = markersDataRef.current[idx];
+      if (data) {
+        data.marker.setImage(createPictogramImage(data.category));
+        data.marker.setZIndex(5);
+        selectedIdxRef.current = idx;
+      }
+    },
+    [createDotImage, createPictogramImage],
+  );
+
+  const deselectMarker = useCallback(() => {
+    if (selectedIdxRef.current !== null) {
+      const prev = markersDataRef.current[selectedIdxRef.current];
+      if (prev) {
+        prev.marker.setImage(createDotImage(prev.category));
+        prev.marker.setZIndex(0);
+      }
+      selectedIdxRef.current = null;
+    }
+  }, [createDotImage]);
+
+  // ──────────────────────────────────────────────
+  // 줌 레벨에 따라 라벨 표시/숨김
+  // ──────────────────────────────────────────────
+  const updateLabelsForZoom = useCallback((level: number) => {
+    const show = level <= ZOOM_THRESHOLD;
+    markersDataRef.current.forEach(({ label }) => {
+      if (show) {
+        label.setMap(mapRef.current);
+      } else {
+        label.setMap(null);
+      }
+    });
+  }, []);
+
+  // ──────────────────────────────────────────────
   // Kakao Maps SDK 로드
+  // ──────────────────────────────────────────────
   useEffect(() => {
     if (window.kakao?.maps) {
       window.kakao.maps.load(() => setLoaded(true));
@@ -38,10 +128,12 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
     document.head.appendChild(script);
   }, []);
 
+  // ──────────────────────────────────────────────
+  // 현재 위치 마커 (빨간 점)
+  // ──────────────────────────────────────────────
   function placeUserMarker(userPos: any) {
     const { maps } = window.kakao;
 
-    // 기존 마커 제거
     if (userMarkerRef.current) userMarkerRef.current.setMap(null);
 
     const svg = `
@@ -64,7 +156,9 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
     });
   }
 
+  // ──────────────────────────────────────────────
   // 지도 초기화 + 현재 위치 요청
+  // ──────────────────────────────────────────────
   useEffect(() => {
     if (!loaded || !containerRef.current) return;
 
@@ -76,8 +170,16 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
       level: 7,
     });
 
+    // 지도 빈 영역 클릭 시 오버레이 닫기 + 선택 마커 해제
     maps.event.addListener(mapRef.current, "click", () => {
+      deselectMarker();
       if (onMapClick) onMapClick();
+    });
+
+    // 줌 변경 시 라벨 표시/숨김
+    maps.event.addListener(mapRef.current, "zoom_changed", () => {
+      const level = mapRef.current.getLevel();
+      updateLabelsForZoom(level);
     });
 
     if (!navigator.geolocation) return;
@@ -97,38 +199,35 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
         // 위치 거부 시 서울 기본값 유지
       },
     );
-  }, [loaded]);
+  }, [loaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 마커 렌더링
+  // ──────────────────────────────────────────────
+  // 마커 + 라벨 렌더링
+  // ──────────────────────────────────────────────
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
 
     const { maps } = window.kakao;
 
-    // 기존 마커 제거
-    markersRef.current.forEach((m) => m.setMap(null));
-    markersRef.current = [];
+    // 기존 마커 + 라벨 제거
+    markersDataRef.current.forEach(({ marker, label }) => {
+      marker.setMap(null);
+      label.setMap(null);
+    });
+    markersDataRef.current = [];
+    selectedIdxRef.current = null;
 
     if (places.length === 0) return;
 
+    const currentLevel = mapRef.current.getLevel();
+    const showLabels = currentLevel <= ZOOM_THRESHOLD;
     const bounds = new maps.LatLngBounds();
 
-    places.forEach((place) => {
+    places.forEach((place, idx) => {
       const position = new maps.LatLng(place.latitude, place.longitude);
-      const color = getCategoryColor(place.category);
 
-      const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-          <path d="M14 0C6.27 0 0 6.27 0 14c0 9.625 14 22 14 22S28 23.625 28 14C28 6.27 21.73 0 14 0z"
-            fill="${color}" stroke="white" stroke-width="1.5"/>
-          <circle cx="14" cy="14" r="5" fill="white"/>
-        </svg>`;
-
-      const markerImage = new maps.MarkerImage(
-        `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-        new maps.Size(28, 36),
-        { offset: new maps.Point(14, 36) },
-      );
+      // 기본은 항상 도트 마커
+      const markerImage = createDotImage(place.category);
 
       const marker = new maps.Marker({
         position,
@@ -136,13 +235,43 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
         map: mapRef.current,
       });
 
+      // 가게 이름 라벨 (CustomOverlay)
+      const labelContent = `<div style="
+        font-size:11px;
+        font-weight:600;
+        color:#111;
+        text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;
+        white-space:nowrap;
+        text-align:center;
+        pointer-events:none;
+        padding-top:6px;
+      ">${place.name}</div>`;
+
+      const label = new maps.CustomOverlay({
+        position,
+        content: labelContent,
+        yAnchor: 0,
+        map: showLabels ? mapRef.current : null,
+      });
+
       maps.event.addListener(marker, "click", () => {
-        // 현재 줌 레벨 유지하면서 해당 마커로 이동
-        mapRef.current.panTo(position);
+        selectMarker(idx);
+
+        // 바텀시트 오버레이 위에 마커가 보이도록 지도를 약간 위쪽으로 오프셋
+        const projection = mapRef.current.getProjection();
+        const point = projection.pointFromCoords(position);
+        point.y += 150; // 마커를 화면 상단 쪽으로 올림
+        const offsetCenter = projection.coordsFromPoint(point);
+        mapRef.current.panTo(offsetCenter);
+
         onMarkerClick(place);
       });
 
-      markersRef.current.push(marker);
+      markersDataRef.current.push({
+        marker,
+        label,
+        category: place.category,
+      });
       bounds.extend(position);
     });
 
@@ -155,19 +284,20 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
     } else {
       mapRef.current.setBounds(bounds);
     }
-  }, [loaded, places, onMarkerClick]);
+  }, [loaded, places, onMarkerClick, createDotImage, selectMarker]);
 
+  // ──────────────────────────────────────────────
+  // 현재 위치로 이동
+  // ──────────────────────────────────────────────
   function handleMoveToCurrentLocation() {
     const map = mapRef.current;
     if (!map) return;
 
-    // 이미 위치를 받은 경우 바로 이동
     if (userPosRef.current) {
       map.panTo(userPosRef.current);
       return;
     }
 
-    // 위치를 아직 못 받은 경우 재요청
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(

@@ -6,6 +6,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 const PLACES_KEY = (category?: PlaceCategory) =>
   category ? ["places", category] : ["places"];
 
+// 단건 조회
+export function usePlaceById(id: string) {
+  return useQuery<Place>({
+    queryKey: ["places", id],
+    queryFn: async () => {
+      const res = await fetch(`/api/places/${id}`);
+      if (!res.ok) throw new Error("장소를 불러오지 못했습니다");
+      return res.json();
+    },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+  });
+}
+
 // 목록 조회
 export function usePlaces(category?: PlaceCategory) {
   return useQuery<Place[]>({
