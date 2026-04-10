@@ -102,67 +102,73 @@ export default function ExtractResult({
               isDone ? "opacity-40" : "border-gray-200 bg-white"
             }`}
           >
-            <div className="flex justify-between items-start">
-              {/* 카테고리 뱃지 */}
-              <span
-                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                  CATEGORY_BADGE[place.category]
-                }`}
-              >
-                {place.category}
-              </span>
-              {/* 대표 썸네일 (있는 경우) */}
+            {/* 상단: 정보(좌) + 이미지(우) */}
+            <div className="flex gap-3">
+              {/* 좌: 카테고리 뱃지 + 가게명 + 주소 + 설명 */}
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span
+                  className={`mb-1.5 inline-block self-start rounded-full px-2 py-0.5 text-xs font-medium ${
+                    CATEGORY_BADGE[place.category]
+                  }`}
+                >
+                  {place.category}
+                </span>
+
+                {/* 가게명 (편집 가능) */}
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) =>
+                    setEditedNames((prev) => ({ ...prev, [idx]: e.target.value }))
+                  }
+                  disabled={isDone}
+                  className="rounded-lg border border-transparent bg-gray-50 px-2.5 py-1.5 text-sm font-semibold text-gray-900 focus:border-gray-300 focus:outline-none disabled:bg-transparent disabled:px-0"
+                />
+
+                {/* 주소 */}
+                {hasKakao ? (
+                  <p className="mt-1 truncate text-xs text-gray-500">
+                    📍{" "}
+                    {place.kakao!.road_address_name ||
+                      place.kakao!.address_name ||
+                      place.address ||
+                      "주소 정보 없음"}
+                  </p>
+                ) : (
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <p className="text-xs text-orange-500">
+                      가게를 찾지 못했어요
+                    </p>
+                    <button
+                      onClick={() => handleRetrySearch(place, idx)}
+                      className="text-xs text-gray-400 underline"
+                    >
+                      재검색
+                    </button>
+                  </div>
+                )}
+
+                {/* 설명 */}
+                <p className="mt-1 line-clamp-2 text-xs text-gray-400">
+                  {place.description}
+                </p>
+              </div>
+
+              {/* 우: 썸네일 이미지 */}
               {imageUrls.length > 0 && (
-                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50">
-                  <Image 
-                    src={imageUrls[0]} 
-                    alt="thumbnail" 
+                <div className="relative h-[88px] w-[88px] flex-shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                  <Image
+                    src={imageUrls[0]}
+                    alt="thumbnail"
                     fill
-                    className="object-cover" 
+                    className="object-cover"
                     unoptimized={false}
                   />
                 </div>
               )}
             </div>
 
-            {/* 가게명 (편집 가능) */}
-            <input
-              type="text"
-              value={editedName}
-              onChange={(e) =>
-                setEditedNames((prev) => ({ ...prev, [idx]: e.target.value }))
-              }
-              disabled={isDone}
-              className="mt-2 w-full rounded-lg border border-transparent bg-gray-50 px-3 py-2 text-base font-semibold text-gray-900 focus:border-gray-300 focus:outline-none disabled:bg-transparent disabled:px-0"
-            />
-
-            {/* 카카오맵 검색 결과 */}
-            {hasKakao ? (
-              <p className="mt-1 text-sm text-gray-500">
-                📍{" "}
-                {place.kakao!.road_address_name ||
-                  place.kakao!.address_name ||
-                  place.address ||
-                  "주소 정보 없음"}
-              </p>
-            ) : (
-              <div className="mt-2 flex items-center gap-2">
-                <p className="text-sm text-orange-500">
-                  지도에서 가게를 찾지 못했어요
-                </p>
-                <button
-                  onClick={() => handleRetrySearch(place, idx)}
-                  className="text-xs text-gray-500 underline"
-                >
-                  재검색
-                </button>
-              </div>
-            )}
-
-            {/* 설명 */}
-            <p className="mt-1 text-xs text-gray-400">{place.description}</p>
-
-            {/* 액션 버튼 */}
+            {/* 하단: 액션 버튼 */}
             {!isDone && (
               <div className="mt-3 flex gap-2">
                 <button
@@ -170,7 +176,7 @@ export default function ExtractResult({
                   disabled={!hasKakao || isPending}
                   className="flex-1 rounded-xl bg-black py-2.5 text-sm font-medium text-white disabled:opacity-40"
                 >
-                  {isSaved ? "저장됨" : "저장"}
+                  저장
                 </button>
                 <button
                   onClick={() => handleSkip(idx)}
