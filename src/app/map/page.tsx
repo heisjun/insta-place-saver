@@ -42,6 +42,7 @@ function MapContent() {
         <KakaoMap
           places={places}
           onMarkerClick={handleMarkerClick}
+          onMapClick={() => setSelectedPlace(null)}
         />
       </div>
 

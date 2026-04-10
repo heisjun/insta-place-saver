@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 interface KakaoMapProps {
   places: Place[];
   onMarkerClick: (place: Place) => void;
+  onMapClick?: () => void;
 }
 
 declare global {
@@ -15,7 +16,7 @@ declare global {
   }
 }
 
-export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
+export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -73,6 +74,10 @@ export default function KakaoMap({ places, onMarkerClick }: KakaoMapProps) {
     mapRef.current = new maps.Map(containerRef.current, {
       center: defaultCenter,
       level: 7,
+    });
+
+    maps.event.addListener(mapRef.current, "click", () => {
+      if (onMapClick) onMapClick();
     });
 
     if (!navigator.geolocation) return;

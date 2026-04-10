@@ -11,7 +11,7 @@ import { Suspense, useEffect, useState } from "react";
 function AddContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { step, places, error, caption, run, runWithCaption, reset } = useExtract();
+  const { step, places, error, caption, imageUrls, run, runWithCaption, reset } = useExtract();
   const [instagramUrl, setInstagramUrl] = useState("");
   const [completed, setCompleted] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
@@ -179,6 +179,7 @@ function AddContent() {
             places={places}
             instagramUrl={instagramUrl}
             instagramCaption={caption}
+            imageUrls={imageUrls}
             onComplete={handleComplete}
           />
         )}

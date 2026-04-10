@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
       memo: body.memo ?? null,
       instagram_url: body.instagram_url ?? null,
       instagram_caption: body.instagram_caption ?? null,
+      instagram_image_urls: body.instagram_image_urls ?? null,
       kakao_place_id: body.kakao_place_id ?? null,
       kakao_place_url: body.kakao_place_url ?? null,
     })
