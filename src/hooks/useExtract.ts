@@ -10,6 +10,7 @@ interface ExtractState {
   places: ExtractedPlaceWithKakao[];
   error: string | null;
   caption: string | null;
+  imageUrls: string[];
 }
 
 export function useExtract() {
@@ -18,13 +19,15 @@ export function useExtract() {
     places: [],
     error: null,
     caption: null,
+    imageUrls: [],
   });
 
   async function run(url: string) {
-    setState({ step: "scraping", places: [], error: null, caption: null });
+    setState({ step: "scraping", places: [], error: null, caption: null, imageUrls: [] });
 
     // 1. 캡션 크롤링
     let caption: string;
+    let imageUrls: string[] = [];
     try {
       const res = await fetch("/api/instagram/scrape", {
         method: "POST",
@@ -42,6 +45,9 @@ export function useExtract() {
         return;
       }
       caption = data.caption;
+      if (data.imageUrls) {
+        imageUrls = data.imageUrls;
+      }
     } catch {
       setState((s) => ({
         ...s,
@@ -51,7 +57,7 @@ export function useExtract() {
       return;
     }
 
-    setState((s) => ({ ...s, step: "extracting", caption }));
+    setState((s) => ({ ...s, step: "extracting", caption, imageUrls }));
 
     // 2. Claude 추출 + 카카오 검색
     try {
@@ -90,9 +96,8 @@ export function useExtract() {
     }
   }
 
-  // 캡션을 직접 붙여넣어 분석 (크롤링 실패 시 폴백)
   async function runWithCaption(caption: string) {
-    setState({ step: "extracting", places: [], error: null, caption });
+    setState({ step: "extracting", places: [], error: null, caption, imageUrls: [] });
 
     try {
       const res = await fetch("/api/extract", {
@@ -131,7 +136,7 @@ export function useExtract() {
   }
 
   function reset() {
-    setState({ step: "idle", places: [], error: null, caption: null });
+    setState({ step: "idle", places: [], error: null, caption: null, imageUrls: [] });
   }
 
   return { ...state, run, runWithCaption, reset };

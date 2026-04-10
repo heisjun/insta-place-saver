@@ -11,6 +11,7 @@ export interface Place {
   memo: string | null;
   instagram_url: string | null;
   instagram_caption: string | null;
+  instagram_image_urls: string[] | null;
   visited: boolean;
   rating?: number | null;
   kakao_place_id: string | null;

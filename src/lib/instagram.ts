@@ -17,6 +17,7 @@ export interface ScrapeResult {
   caption: string;
   authorName: string;
   shortcode: string;
+  imageUrls: string[];
 }
 
 export function extractInstagramUrl(text: string): string | null {
@@ -67,7 +68,25 @@ export async function scrapeInstagramCaption(
     throw new Error("캡션이 없는 게시글입니다.");
   }
 
-  return { caption, authorName, shortcode };
+  // 이미지 추출
+  let imageUrls: string[] = [];
+  if (post.displayUrl) {
+    imageUrls.push(post.displayUrl);
+  }
+  if (post.images && Array.isArray(post.images)) {
+    imageUrls.push(...post.images);
+  }
+  if (post.childPosts && Array.isArray(post.childPosts)) {
+    post.childPosts.forEach((child) => {
+      if (child.displayUrl) {
+        imageUrls.push(child.displayUrl);
+      }
+    });
+  }
+  // 중복 제거 및 null 방지
+  imageUrls = [...new Set(imageUrls)].filter(Boolean);
+
+  return { caption, authorName, shortcode, imageUrls };
 }
 
 // Apify Instagram Scraper 응답 타입 (주요 필드만)
@@ -78,4 +97,7 @@ interface ApifyPost {
   username?: string;
   shortCode?: string;
   url?: string;
+  displayUrl?: string;
+  images?: string[];
+  childPosts?: { displayUrl?: string }[];
 }

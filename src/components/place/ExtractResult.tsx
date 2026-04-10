@@ -3,6 +3,7 @@
 import { useSavePlace } from "@/hooks/usePlaces";
 import { ExtractedPlaceWithKakao, PlaceCategory } from "@/lib/types";
 import { useState } from "react";
+import Image from "next/image";
 
 const CATEGORY_BADGE: Record<PlaceCategory, string> = {
   맛집: "bg-red-100 text-red-700",
@@ -16,6 +17,7 @@ interface Props {
   places: ExtractedPlaceWithKakao[];
   instagramUrl: string;
   instagramCaption: string | null;
+  imageUrls: string[];
   onComplete: (savedCount: number) => void;
 }
 
@@ -23,6 +25,7 @@ export default function ExtractResult({
   places,
   instagramUrl,
   instagramCaption,
+  imageUrls,
   onComplete,
 }: Props) {
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
@@ -49,6 +52,7 @@ export default function ExtractResult({
       memo: place.description || null,
       instagram_url: instagramUrl,
       instagram_caption: instagramCaption,
+      instagram_image_urls: imageUrls,
       visited: false,
       kakao_place_id: kakao.id,
       kakao_place_url: kakao.place_url,
@@ -98,14 +102,28 @@ export default function ExtractResult({
               isDone ? "opacity-40" : "border-gray-200 bg-white"
             }`}
           >
-            {/* 카테고리 뱃지 */}
-            <span
-              className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                CATEGORY_BADGE[place.category]
-              }`}
-            >
-              {place.category}
-            </span>
+            <div className="flex justify-between items-start">
+              {/* 카테고리 뱃지 */}
+              <span
+                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                  CATEGORY_BADGE[place.category]
+                }`}
+              >
+                {place.category}
+              </span>
+              {/* 대표 썸네일 (있는 경우) */}
+              {imageUrls.length > 0 && (
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50">
+                  <Image 
+                    src={imageUrls[0]} 
+                    alt="thumbnail" 
+                    fill
+                    className="object-cover" 
+                    unoptimized={false}
+                  />
+                </div>
+              )}
+            </div>
 
             {/* 가게명 (편집 가능) */}
             <input
