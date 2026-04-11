@@ -31,11 +31,12 @@ function LoginContent() {
 
       {/* 로고 */}
       <div className="mb-12 text-center">
-        <div className="mb-3 text-4xl">📍</div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          InstaPlaceSaver
-        </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <img
+          src="/logo.svg"
+          alt="InstaPlaceSaver"
+          className="mx-auto mb-4 w-44"
+        />
+        <p className="text-sm text-gray-500">
           인스타그램 맛집을 지도에 저장하세요
         </p>
       </div>

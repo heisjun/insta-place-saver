@@ -39,8 +39,8 @@ function MapContent() {
         <CategoryFilter />
       </div>
 
-      {/* 지도 - absolute로 전체 영역 채움 */}
-      <div className="absolute inset-0">
+      {/* 지도 - z-0으로 stacking context 생성 → Kakao 내부 z-index 격리 */}
+      <div className="absolute inset-0 z-0">
         <KakaoMap
           places={places}
           onMarkerClick={handleMarkerClick}

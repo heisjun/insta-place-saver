@@ -29,19 +29,21 @@ const letterVariants = {
   }),
 };
 
-export default function SplashScreen() {
-  const [visible, setVisible] = useState(false);
+interface Props {
+  serverShowSplash?: boolean;
+}
+
+export default function SplashScreen({ serverShowSplash = false }: Props) {
+  // 서버가 쿠키를 확인해 첫 방문 여부를 결정 → 초기 HTML에 visible=true로 포함
+  const [visible, setVisible] = useState(serverShowSplash);
 
   useEffect(() => {
-    const shown = sessionStorage.getItem("splash_shown");
-    if (shown) return;
-
-    setVisible(true);
-    sessionStorage.setItem("splash_shown", "1");
-
+    if (!serverShowSplash) return;
+    // 세션 쿠키 설정 (브라우저 종료 시 만료)
+    document.cookie = "splash_shown=1; path=/";
     const timer = setTimeout(() => setVisible(false), 2200);
     return () => clearTimeout(timer);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AnimatePresence>

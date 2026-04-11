@@ -40,6 +40,7 @@ export default function KakaoMap({
   const userPosRef = useRef<any>(null);
   const userMarkerRef = useRef<any>(null);
   const selectedIdxRef = useRef<number | null>(null);
+  const hasPositionedRef = useRef(false); // 위치(geolocation 또는 autoSelect)로 이미 이동했으면 true
   const [loaded, setLoaded] = useState(false);
   const [locating, setLocating] = useState(false);
 
@@ -197,6 +198,7 @@ export default function KakaoMap({
           pos.coords.longitude,
         );
         userPosRef.current = userPos;
+        hasPositionedRef.current = true;
         mapRef.current.setCenter(userPos);
         mapRef.current.setLevel(5);
         placeUserMarker(userPos);
@@ -281,20 +283,23 @@ export default function KakaoMap({
       bounds.extend(position);
     });
 
-    // 마커 전체가 보이도록 지도 범위 조정
-    if (places.length === 1) {
-      mapRef.current.setCenter(
-        new maps.LatLng(places[0].latitude, places[0].longitude),
-      );
-      mapRef.current.setLevel(4);
-    } else {
-      mapRef.current.setBounds(bounds);
+    // 위치가 아직 설정되지 않은 경우에만 마커 기준으로 지도 범위 조정
+    if (!hasPositionedRef.current) {
+      if (places.length === 1) {
+        mapRef.current.setCenter(
+          new maps.LatLng(places[0].latitude, places[0].longitude),
+        );
+        mapRef.current.setLevel(4);
+      } else {
+        mapRef.current.setBounds(bounds);
+      }
     }
 
     // 자동 선택: selectId로 진입한 경우 해당 마커를 선택 + panTo
     if (autoSelectPlaceId) {
       const targetIdx = places.findIndex((p) => p.id === autoSelectPlaceId);
       if (targetIdx !== -1) {
+        hasPositionedRef.current = true;
         // 지도 범위 조정 애니메이션이 끝난 뒤 실행
         setTimeout(() => {
           selectMarker(targetIdx);
