@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAddModal } from "@/store/addModal";
 
 const HIDDEN_PATHS = ["/login", "/"];
 
@@ -74,6 +75,7 @@ const NAV_ITEMS = [
 export default function BottomNav() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const { openModal } = useAddModal();
 
   useEffect(() => setMounted(true), []);
 
@@ -84,24 +86,34 @@ export default function BottomNav() {
       <div className="flex h-14 items-center justify-around">
         {NAV_ITEMS.map(({ href, label, icon }) => {
           const active = pathname === href;
+
+          // 추가 버튼은 Link 대신 button으로 모달 오픈
+          if (href === "/add") {
+            return (
+              <button
+                key={href}
+                onClick={openModal}
+                className="flex flex-col items-center gap-1 -mt-4"
+              >
+                <span>{icon(false)}</span>
+              </button>
+            );
+          }
+
           return (
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center gap-1 ${
-                href === "/add" ? "-mt-4" : ""
-              }`}
+              className="flex flex-col items-center gap-1"
             >
               <span className={active ? "text-black" : "text-gray-400"}>
                 {icon(active)}
               </span>
-              {href !== "/add" && (
-                <span
-                  className={`text-xs ${active ? "font-semibold text-black" : "text-gray-400"}`}
-                >
-                  {label}
-                </span>
-              )}
+              <span
+                className={`text-xs ${active ? "font-semibold text-black" : "text-gray-400"}`}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}
