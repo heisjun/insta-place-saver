@@ -7,11 +7,13 @@ import PlaceOverlay from "@/components/map/PlaceOverlay";
 import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { Place } from "@/lib/types";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useState, Suspense } from "react";
 
 function MapContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoSelectId = searchParams.get("selectId") ?? undefined;
   const { selected } = useCategoryFilter();
   const { data: places = [], isLoading } = usePlaces(selected ?? undefined);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -37,12 +39,13 @@ function MapContent() {
         <CategoryFilter />
       </div>
 
-      {/* 지도 - absolute로 전체 영역 채움 */}
-      <div className="absolute inset-0">
+      {/* 지도 - z-0으로 stacking context 생성 → Kakao 내부 z-index 격리 */}
+      <div className="absolute inset-0 z-0">
         <KakaoMap
           places={places}
           onMarkerClick={handleMarkerClick}
           onMapClick={() => setSelectedPlace(null)}
+          autoSelectPlaceId={autoSelectId}
         />
       </div>
 
@@ -74,7 +77,9 @@ function MapContent() {
 export default function MapPage() {
   return (
     <AuthGuard>
-      <MapContent />
+      <Suspense>
+        <MapContent />
+      </Suspense>
     </AuthGuard>
   );
 }

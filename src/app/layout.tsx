@@ -3,7 +3,9 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import SupabaseProvider from "@/components/providers/SupabaseProvider";
 import BottomNav from "@/components/layout/BottomNav";
+import SplashScreen from "@/components/layout/SplashScreen";
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
   title: "InstaPlaceSaver",
@@ -40,6 +42,10 @@ export default async function RootLayout({
     ? (await supabase.auth.getSession()).data.session
     : null;
 
+  // 스플래시 표시 여부: 세션 쿠키가 없으면 첫 방문
+  const cookieStore = await cookies();
+  const splashShown = cookieStore.has("splash_shown");
+
   return (
     <html lang="ko" className="h-full overflow-hidden">
       <body className="h-full overflow-hidden bg-white text-gray-900">
@@ -47,6 +53,7 @@ export default async function RootLayout({
           <QueryProvider>
             {children}
             <BottomNav />
+            <SplashScreen serverShowSplash={!splashShown} />
           </QueryProvider>
         </SupabaseProvider>
       </body>

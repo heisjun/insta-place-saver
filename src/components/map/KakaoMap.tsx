@@ -12,6 +12,7 @@ interface KakaoMapProps {
   places: Place[];
   onMarkerClick: (place: Place) => void;
   onMapClick?: () => void;
+  autoSelectPlaceId?: string;
 }
 
 declare global {
@@ -23,17 +24,23 @@ declare global {
 /** 마커 + 라벨 + 카테고리를 묶어 관리 */
 interface MarkerData {
   marker: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  label: any;  // CustomOverlay for place name
+  label: any; // CustomOverlay for place name
   category: PlaceCategory;
 }
 
-export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMapProps) {
+export default function KakaoMap({
+  places,
+  onMarkerClick,
+  onMapClick,
+  autoSelectPlaceId,
+}: KakaoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersDataRef = useRef<MarkerData[]>([]);
   const userPosRef = useRef<any>(null);
   const userMarkerRef = useRef<any>(null);
   const selectedIdxRef = useRef<number | null>(null);
+  const hasPositionedRef = useRef(false); // 위치(geolocation 또는 autoSelect)로 이미 이동했으면 true
   const [loaded, setLoaded] = useState(false);
   const [locating, setLocating] = useState(false);
 
@@ -191,6 +198,7 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
           pos.coords.longitude,
         );
         userPosRef.current = userPos;
+        hasPositionedRef.current = true;
         mapRef.current.setCenter(userPos);
         mapRef.current.setLevel(5);
         placeUserMarker(userPos);
@@ -275,16 +283,48 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
       bounds.extend(position);
     });
 
-    // 마커 전체가 보이도록 지도 범위 조정
-    if (places.length === 1) {
-      mapRef.current.setCenter(
-        new maps.LatLng(places[0].latitude, places[0].longitude),
-      );
-      mapRef.current.setLevel(4);
-    } else {
-      mapRef.current.setBounds(bounds);
+    // 위치가 아직 설정되지 않은 경우에만 마커 기준으로 지도 범위 조정
+    if (!hasPositionedRef.current) {
+      if (places.length === 1) {
+        mapRef.current.setCenter(
+          new maps.LatLng(places[0].latitude, places[0].longitude),
+        );
+        mapRef.current.setLevel(4);
+      } else {
+        mapRef.current.setBounds(bounds);
+      }
     }
-  }, [loaded, places, onMarkerClick, createDotImage, selectMarker]);
+
+    // 자동 선택: selectId로 진입한 경우 해당 마커를 선택 + panTo
+    if (autoSelectPlaceId) {
+      const targetIdx = places.findIndex((p) => p.id === autoSelectPlaceId);
+      if (targetIdx !== -1) {
+        hasPositionedRef.current = true;
+        // 지도 범위 조정 애니메이션이 끝난 뒤 실행
+        setTimeout(() => {
+          selectMarker(targetIdx);
+          const target = places[targetIdx];
+          const position = new maps.LatLng(target.latitude, target.longitude);
+          // 가게명 라벨이 보이는 줌 레벨로 확대
+          mapRef.current.setLevel(5);
+          // 오버레이가 마커를 가리지 않도록 위쪽으로 오프셋
+          const projection = mapRef.current.getProjection();
+          const point = projection.pointFromCoords(position);
+          point.y += 150;
+          const offsetCenter = projection.coordsFromPoint(point);
+          mapRef.current.panTo(offsetCenter);
+          onMarkerClick(target);
+        }, 500);
+      }
+    }
+  }, [
+    loaded,
+    places,
+    onMarkerClick,
+    createDotImage,
+    selectMarker,
+    autoSelectPlaceId,
+  ]);
 
   // ──────────────────────────────────────────────
   // 현재 위치로 이동
