@@ -18,7 +18,7 @@ interface Props {
   instagramUrl: string;
   instagramCaption: string | null;
   imageUrls: string[];
-  onComplete: (savedCount: number) => void;
+  onComplete: (savedCount: number, firstPlaceId?: string) => void;
 }
 
 export default function ExtractResult({
@@ -31,6 +31,7 @@ export default function ExtractResult({
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [skippedIds, setSkippedIds] = useState<Set<number>>(new Set());
   const [editedNames, setEditedNames] = useState<Record<number, string>>({});
+  const [firstSavedPlaceId, setFirstSavedPlaceId] = useState<string | undefined>();
   const { mutateAsync: savePlace, isPending } = useSavePlace();
 
   const remaining = places.filter(
@@ -43,7 +44,7 @@ export default function ExtractResult({
 
     if (!kakao) return;
 
-    await savePlace({
+    const saved = await savePlace({
       name,
       address: kakao.road_address_name || kakao.address_name || place.address,
       category: place.category,
@@ -58,9 +59,15 @@ export default function ExtractResult({
       kakao_place_url: kakao.place_url,
     });
 
+    // 첫 번째 저장된 장소 ID 기록 (지도 자동 선택용)
+    const placeId = firstSavedPlaceId ?? saved?.id;
+    if (!firstSavedPlaceId && saved?.id) setFirstSavedPlaceId(saved.id);
+
     const nextSaved = new Set(savedIds).add(idx);
     setSavedIds(nextSaved);
-    if (nextSaved.size + skippedIds.size === places.length) onComplete(nextSaved.size);
+    if (nextSaved.size + skippedIds.size === places.length) {
+      onComplete(nextSaved.size, placeId);
+    }
   }
 
   function handleSkip(idx: number) {
@@ -161,6 +168,7 @@ export default function ExtractResult({
                     src={imageUrls[0]}
                     alt="thumbnail"
                     fill
+                    sizes="88px"
                     className="object-cover"
                     unoptimized={false}
                   />

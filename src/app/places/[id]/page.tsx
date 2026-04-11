@@ -68,6 +68,7 @@ function ImageCarousel({ urls }: { urls: string[] }) {
               src={url}
               alt={`사진 ${i + 1}`}
               fill
+              sizes="100vw"
               className="object-cover"
               unoptimized={false}
               priority={i === 0}

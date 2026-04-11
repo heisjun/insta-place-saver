@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 
 interface Props {
   savedCount: number;
+  firstPlaceId?: string;
   onContinue: () => void;
 }
 
-export default function SaveSuccessScreen({ savedCount, onContinue }: Props) {
+export default function SaveSuccessScreen({ savedCount, firstPlaceId, onContinue }: Props) {
   const router = useRouter();
   const success = savedCount > 0;
 
@@ -99,7 +100,9 @@ export default function SaveSuccessScreen({ savedCount, onContinue }: Props) {
       >
         {success && (
           <button
-            onClick={() => router.push("/map")}
+            onClick={() =>
+              router.push(firstPlaceId ? `/map?selectId=${firstPlaceId}` : "/map")
+            }
             className="h-12 w-full rounded-xl bg-black text-sm font-medium text-white active:opacity-80"
           >
             지도에서 보기

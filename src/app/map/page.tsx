@@ -7,11 +7,13 @@ import PlaceOverlay from "@/components/map/PlaceOverlay";
 import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { Place } from "@/lib/types";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useState, Suspense } from "react";
 
 function MapContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoSelectId = searchParams.get("selectId") ?? undefined;
   const { selected } = useCategoryFilter();
   const { data: places = [], isLoading } = usePlaces(selected ?? undefined);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -43,6 +45,7 @@ function MapContent() {
           places={places}
           onMarkerClick={handleMarkerClick}
           onMapClick={() => setSelectedPlace(null)}
+          autoSelectPlaceId={autoSelectId}
         />
       </div>
 
@@ -74,7 +77,9 @@ function MapContent() {
 export default function MapPage() {
   return (
     <AuthGuard>
-      <MapContent />
+      <Suspense>
+        <MapContent />
+      </Suspense>
     </AuthGuard>
   );
 }

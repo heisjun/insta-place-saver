@@ -105,6 +105,7 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
                     src={url}
                     alt={`place photo ${i + 1}`}
                     fill
+                    sizes="120px"
                     className="object-cover pointer-events-none"
                     unoptimized={false}
                   />

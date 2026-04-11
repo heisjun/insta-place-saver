@@ -5,7 +5,7 @@ import { PlaceCategory } from "@/lib/types";
 import { getCategoryColor } from "@/lib/mapColors";
 
 /** 줌 레벨 임계값: 이 값 이하면 픽토그램, 초과하면 도트 */
-export const ZOOM_THRESHOLD = 6;
+export const ZOOM_THRESHOLD = 7;
 
 // Lucide 아이콘 SVG path (viewBox 0 0 24 24, stroke 기반)
 const CATEGORY_ICON_PATHS: Record<PlaceCategory, string> = {

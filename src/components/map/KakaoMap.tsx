@@ -12,6 +12,7 @@ interface KakaoMapProps {
   places: Place[];
   onMarkerClick: (place: Place) => void;
   onMapClick?: () => void;
+  autoSelectPlaceId?: string;
 }
 
 declare global {
@@ -23,11 +24,16 @@ declare global {
 /** 마커 + 라벨 + 카테고리를 묶어 관리 */
 interface MarkerData {
   marker: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  label: any;  // CustomOverlay for place name
+  label: any; // CustomOverlay for place name
   category: PlaceCategory;
 }
 
-export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMapProps) {
+export default function KakaoMap({
+  places,
+  onMarkerClick,
+  onMapClick,
+  autoSelectPlaceId,
+}: KakaoMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersDataRef = useRef<MarkerData[]>([]);
@@ -284,7 +290,36 @@ export default function KakaoMap({ places, onMarkerClick, onMapClick }: KakaoMap
     } else {
       mapRef.current.setBounds(bounds);
     }
-  }, [loaded, places, onMarkerClick, createDotImage, selectMarker]);
+
+    // 자동 선택: selectId로 진입한 경우 해당 마커를 선택 + panTo
+    if (autoSelectPlaceId) {
+      const targetIdx = places.findIndex((p) => p.id === autoSelectPlaceId);
+      if (targetIdx !== -1) {
+        // 지도 범위 조정 애니메이션이 끝난 뒤 실행
+        setTimeout(() => {
+          selectMarker(targetIdx);
+          const target = places[targetIdx];
+          const position = new maps.LatLng(target.latitude, target.longitude);
+          // 가게명 라벨이 보이는 줌 레벨로 확대
+          mapRef.current.setLevel(5);
+          // 오버레이가 마커를 가리지 않도록 위쪽으로 오프셋
+          const projection = mapRef.current.getProjection();
+          const point = projection.pointFromCoords(position);
+          point.y += 150;
+          const offsetCenter = projection.coordsFromPoint(point);
+          mapRef.current.panTo(offsetCenter);
+          onMarkerClick(target);
+        }, 500);
+      }
+    }
+  }, [
+    loaded,
+    places,
+    onMarkerClick,
+    createDotImage,
+    selectMarker,
+    autoSelectPlaceId,
+  ]);
 
   // ──────────────────────────────────────────────
   // 현재 위치로 이동

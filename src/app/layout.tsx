@@ -3,6 +3,7 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import SupabaseProvider from "@/components/providers/SupabaseProvider";
 import BottomNav from "@/components/layout/BottomNav";
+import SplashScreen from "@/components/layout/SplashScreen";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -47,6 +48,7 @@ export default async function RootLayout({
           <QueryProvider>
             {children}
             <BottomNav />
+            <SplashScreen />
           </QueryProvider>
         </SupabaseProvider>
       </body>

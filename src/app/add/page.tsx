@@ -121,6 +121,7 @@ function AddContent() {
   const [instagramUrl, setInstagramUrl] = useState("");
   const [completed, setCompleted] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
+  const [firstPlaceId, setFirstPlaceId] = useState<string | undefined>();
   const [manualCaption, setManualCaption] = useState("");
 
   useEffect(() => {
@@ -143,8 +144,9 @@ function AddContent() {
     run(url);
   }
 
-  function handleComplete(count: number) {
+  function handleComplete(count: number, placeId?: string) {
     setSavedCount(count);
+    setFirstPlaceId(placeId);
     setCompleted(true);
   }
 
@@ -182,11 +184,13 @@ function AddContent() {
         {completed && (
           <SaveSuccessScreen
             savedCount={savedCount}
+            firstPlaceId={firstPlaceId}
             onContinue={() => {
               reset();
               setCompleted(false);
               setSavedCount(0);
               setInstagramUrl("");
+              setFirstPlaceId(undefined);
             }}
           />
         )}
