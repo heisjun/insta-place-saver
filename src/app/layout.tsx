@@ -3,6 +3,7 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import SupabaseProvider from "@/components/providers/SupabaseProvider";
 import BottomNav from "@/components/layout/BottomNav";
+import ClipboardAddModal from "@/components/layout/ClipboardAddModal";
 import SplashScreen from "@/components/layout/SplashScreen";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "맛집지도",
+    title: "Plaver",
   },
   icons: {
     apple: "/icon-192.png",
@@ -54,6 +55,7 @@ export default async function RootLayout({
           <QueryProvider>
             {children}
             <BottomNav />
+            <ClipboardAddModal />
             <SplashScreen serverShowSplash={!splashShown} />
           </QueryProvider>
         </SupabaseProvider>
