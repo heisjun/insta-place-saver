@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "InstaPlaceSaver",
-    short_name: "맛집지도",
+    name: "Plaver",
+    short_name: "Plaver",
     description: "인스타그램 맛집을 지도에 저장",
     start_url: "/map",
     display: "standalone",

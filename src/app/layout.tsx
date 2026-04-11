@@ -8,13 +8,16 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
-  title: "InstaPlaceSaver",
+  title: "Plaver",
   description: "인스타그램 맛집을 지도에 저장",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "맛집지도",
+  },
+  icons: {
+    apple: "/icon-192.png",
   },
 };
 
@@ -38,9 +41,7 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
 
   // getUser()는 서버에서 세션을 직접 검증 — getSession()보다 안전
-  const session = user
-    ? (await supabase.auth.getSession()).data.session
-    : null;
+  const session = user ? (await supabase.auth.getSession()).data.session : null;
 
   // 스플래시 표시 여부: 세션 쿠키가 없으면 첫 방문
   const cookieStore = await cookies();
