@@ -31,11 +31,7 @@ function LoginContent() {
 
       {/* 로고 */}
       <div className="mb-12 text-center">
-        <img
-          src="/logo.svg"
-          alt="InstaPlaceSaver"
-          className="mx-auto mb-4 w-44"
-        />
+        <img src="/logo.svg" alt="Plaver" className="mx-auto mb-4 w-44" />
         <p className="text-sm text-gray-500">
           인스타그램 맛집을 지도에 저장하세요
         </p>
