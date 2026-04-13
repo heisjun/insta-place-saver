@@ -124,8 +124,28 @@ export function useDeletePlace() {
         throw new Error(data.error ?? "삭제에 실패했습니다");
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["places"] });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["places"] });
+
+      const previousQueriesData = queryClient.getQueriesData<Place[]>({ queryKey: ["places"] });
+
+      // 리스트 캐시에서 낙관적으로 즉시 제거
+      queryClient.setQueriesData<Place[]>({ queryKey: ["places"] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.filter((p) => p.id !== id);
+      });
+      // 단건 캐시 즉시 제거
+      queryClient.removeQueries({ queryKey: ["places", id] });
+
+      return { previousQueriesData };
+    },
+    onError: (_err, _vars, context) => {
+      // 실패 시 롤백
+      if (context?.previousQueriesData) {
+        for (const [queryKey, data] of context.previousQueriesData) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
     },
   });
 }
