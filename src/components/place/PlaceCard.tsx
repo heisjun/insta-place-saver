@@ -64,16 +64,31 @@ export default function PlaceCard({ place, onPress }: PlaceCardProps) {
   function onTouchMove(e: React.TouchEvent) {
     if (startXRef.current === null) return;
     const dx = e.touches[0].clientX - startXRef.current;
-    if (dx < 0) setTranslateX(Math.max(dx, DELETE_THRESHOLD));
+    if (isSwiped) {
+      // 삭제 버튼이 열린 상태 → 오른쪽 드래그로 닫기
+      if (dx > 0) setTranslateX(Math.min(0, DELETE_THRESHOLD + dx));
+    } else {
+      // 닫힌 상태 → 왼쪽 드래그로 삭제 버튼 노출
+      if (dx < 0) setTranslateX(Math.max(dx, DELETE_THRESHOLD));
+    }
   }
 
   function onTouchEnd() {
-    if (translateX < DELETE_THRESHOLD / 2) {
-      setTranslateX(DELETE_THRESHOLD);
-      setIsSwiped(true);
+    if (isSwiped) {
+      // 절반 이상 복귀했으면 닫기
+      if (translateX > DELETE_THRESHOLD / 2) {
+        setTranslateX(0);
+        setIsSwiped(false);
+      } else {
+        setTranslateX(DELETE_THRESHOLD);
+      }
     } else {
-      setTranslateX(0);
-      setIsSwiped(false);
+      if (translateX < DELETE_THRESHOLD / 2) {
+        setTranslateX(DELETE_THRESHOLD);
+        setIsSwiped(true);
+      } else {
+        setTranslateX(0);
+      }
     }
     startXRef.current = null;
   }

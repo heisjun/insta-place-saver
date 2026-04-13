@@ -5,7 +5,7 @@ import KakaoMiniMap from "@/components/map/KakaoMiniMap";
 import { usePlaceById } from "@/hooks/usePlaces";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { use, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { getCategoryColor } from "@/lib/mapColors";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -24,6 +24,31 @@ function ImageCarousel({ urls }: { urls: string[] }) {
   const startXRef = useRef(0);
   const startYRef = useRef(0);
   const isHorizontalRef = useRef<boolean | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const currentRef = useRef(current);
+  currentRef.current = current;
+
+  // passive: false 로 등록해야 e.preventDefault()로 수직 스크롤을 막을 수 있음
+  // React synthetic onTouchMove는 passive이므로 native 리스너 사용
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    function onTouchMove(e: TouchEvent) {
+      const dx = Math.abs(e.touches[0].clientX - startXRef.current);
+      const dy = Math.abs(e.touches[0].clientY - startYRef.current);
+
+      if (isHorizontalRef.current === null && (dx > 5 || dy > 5)) {
+        isHorizontalRef.current = dx > dy;
+      }
+      if (isHorizontalRef.current) {
+        e.preventDefault();
+      }
+    }
+
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => el.removeEventListener("touchmove", onTouchMove);
+  }, []);
 
   function handleTouchStart(e: React.TouchEvent) {
     startXRef.current = e.touches[0].clientX;
@@ -31,35 +56,24 @@ function ImageCarousel({ urls }: { urls: string[] }) {
     isHorizontalRef.current = null;
   }
 
-  function handleTouchMove(e: React.TouchEvent) {
-    const dx = Math.abs(e.touches[0].clientX - startXRef.current);
-    const dy = Math.abs(e.touches[0].clientY - startYRef.current);
-
-    // 첫 이동 방향 확정
-    if (isHorizontalRef.current === null && (dx > 5 || dy > 5)) {
-      isHorizontalRef.current = dx > dy;
-    }
-
-    // 수평 스와이프로 확정된 경우 페이지 수직 스크롤 막기
-    if (isHorizontalRef.current) {
-      e.preventDefault();
-    }
-  }
-
   function handleTouchEnd(e: React.TouchEvent) {
     if (!isHorizontalRef.current) return;
     const dx = e.changedTouches[0].clientX - startXRef.current;
-    if (dx < -40 && current < urls.length - 1) setCurrent((c) => c + 1);
-    if (dx > 40 && current > 0) setCurrent((c) => c - 1);
+    const c = currentRef.current;
+    if (dx < -40 && c < urls.length - 1) setCurrent(c + 1);
+    if (dx > 40 && c > 0) setCurrent(c - 1);
   }
 
   return (
-    <div className="relative w-full overflow-hidden bg-gray-100" style={{ aspectRatio: "1 / 1" }}>
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-hidden bg-gray-100"
+      style={{ aspectRatio: "1 / 1" }}
+    >
       <div
         className="flex h-full transition-transform duration-300 ease-out"
         style={{ transform: `translateX(-${current * 100}%)` }}
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {urls.map((url, i) => (
