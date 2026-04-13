@@ -91,7 +91,8 @@ export function useUpdatePlace() {
 
       return { previousQueriesData };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
+      console.error("[useUpdatePlace] 업데이트 실패:", err);
       // 실패 시 롤백
       if (context?.previousQueriesData) {
         for (const [queryKey, data] of context.previousQueriesData) {
