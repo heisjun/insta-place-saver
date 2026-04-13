@@ -1,13 +1,45 @@
 "use client";
 
 import AuthGuard from "@/components/layout/AuthGuard";
-import CategoryFilter from "@/components/map/CategoryFilter";
+import FilterBar, { SortOption } from "@/components/place/FilterBar";
 import PlaceCard from "@/components/place/PlaceCard";
 import PlaceCardSkeleton from "@/components/place/PlaceCardSkeleton";
 import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { useSupabase } from "@/components/providers/SupabaseProvider";
 import { useRouter } from "next/navigation";
+import { Place } from "@/lib/types";
+import { useState } from "react";
+
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function sortPlaces(
+  places: Place[],
+  sort: SortOption,
+  userLoc: { lat: number; lng: number } | null,
+) {
+  if (sort === "oldest")
+    return [...places].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  if (sort === "nearest" && userLoc)
+    return [...places].sort(
+      (a, b) =>
+        haversineKm(userLoc.lat, userLoc.lng, a.latitude, a.longitude) -
+        haversineKm(userLoc.lat, userLoc.lng, b.latitude, b.longitude),
+    );
+  // 기본: 최신순
+  return [...places].sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
 
 function PlacesContent() {
   const router = useRouter();
@@ -15,8 +47,37 @@ function PlacesContent() {
   const { selected } = useCategoryFilter();
   const { data: places = [], isLoading } = usePlaces(selected ?? undefined);
 
-  const visited = places.filter((p) => p.visited);
-  const unvisited = places.filter((p) => !p.visited);
+  const [sort, setSort] = useState<SortOption>("newest");
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState(false);
+
+  function handleSortChange(option: SortOption) {
+    if (option === "nearest") {
+      if (geoError) return; // 권한 거부 상태 — 버튼 비활성
+      setSort("nearest");
+      if (userLoc) return; // 이미 위치 있으면 즉시 적용
+      setGeoLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGeoLoading(false);
+        },
+        () => {
+          setGeoError(true);
+          setGeoLoading(false);
+          setSort("newest"); // 권한 거부 시 최신순으로 복귀
+        },
+        { timeout: 8000 },
+      );
+      return;
+    }
+    setSort(option);
+  }
+
+  const sorted = sortPlaces(places, sort, userLoc);
+  const visited = sorted.filter((p) => p.visited);
+  const unvisited = sorted.filter((p) => !p.visited);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -36,10 +97,13 @@ function PlacesContent() {
         </button>
       </header>
 
-      {/* 카테고리 필터 */}
-      <div className="bg-white border-b border-gray-100">
-        <CategoryFilter />
-      </div>
+      {/* 통합 필터바 */}
+      <FilterBar
+        sort={sort}
+        onSortChange={handleSortChange}
+        geoLoading={geoLoading}
+        geoError={geoError}
+      />
 
       {/* 로딩 스켈레톤 */}
       {isLoading && (
