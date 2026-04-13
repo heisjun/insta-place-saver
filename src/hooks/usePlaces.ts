@@ -84,12 +84,21 @@ export function useUpdatePlace() {
       // 현재 캐시 스냅샷 저장
       const previousQueriesData = queryClient.getQueriesData<Place[]>({ queryKey: ["places"] });
 
-      // 모든 places 쿼리 캐시를 낙관적으로 업데이트
-      queryClient.setQueriesData<Place[]>({ queryKey: ["places"] }, (old) =>
-        old?.map((p) => (p.id === id ? { ...p, ...updates } : p)) ?? old
-      );
+      // 모든 places 리스트 쿼리 캐시를 낙관적으로 업데이트 (단건 캐시 제외)
+      queryClient.setQueriesData<Place[]>({ queryKey: ["places"] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((p) => (p.id === id ? { ...p, ...updates } : p));
+      });
 
       return { previousQueriesData };
+    },
+    onSuccess: (updatedPlace) => {
+      // 서버 응답으로 캐시 직접 갱신 — 전체 리페치 없음 (단건 캐시 제외)
+      queryClient.setQueriesData<Place[]>({ queryKey: ["places"] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((p) => (p.id === updatedPlace.id ? updatedPlace : p));
+      });
+      queryClient.setQueryData(["places", updatedPlace.id], updatedPlace);
     },
     onError: (err, _vars, context) => {
       console.error("[useUpdatePlace] 업데이트 실패:", err);
@@ -99,9 +108,6 @@ export function useUpdatePlace() {
           queryClient.setQueryData(queryKey, data);
         }
       }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["places"] });
     },
   });
 }

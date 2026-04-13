@@ -2,7 +2,68 @@
 
 import { Place } from "@/lib/types";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// 스크롤 컨테이너 기준 IntersectionObserver로 필요한 시점에만 이미지 로드
+function LazyCarouselImage({
+  src,
+  alt,
+  eager,
+  containerRef,
+}: {
+  src: string;
+  alt: string;
+  eager: boolean;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(eager);
+
+  useEffect(() => {
+    if (loaded) return;
+    const el = itemRef.current;
+    const container = containerRef.current;
+    if (!el || !container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setLoaded(true);
+          observer.disconnect();
+        }
+      },
+      {
+        root: container,
+        // 뷰포트 오른쪽 120px 앞에서 미리 로드
+        rootMargin: "0px 120px 0px 0px",
+        threshold: 0,
+      }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loaded, containerRef]);
+
+  return (
+    <div
+      ref={itemRef}
+      className="relative h-[120px] w-[120px] flex-shrink-0 snap-start overflow-hidden rounded-2xl bg-gray-100 aspect-square"
+    >
+      {loaded ? (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes="120px"
+          className="object-cover pointer-events-none"
+          unoptimized={false}
+        />
+      ) : (
+        // 아직 뷰포트 밖 — 플레이스홀더만 렌더링
+        <div className="h-full w-full shimmer" />
+      )}
+    </div>
+  );
+}
 
 interface PlaceOverlayProps {
   place: Place;
@@ -23,6 +84,7 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
   const isDragging = useRef(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -84,6 +146,7 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
         {place.instagram_image_urls &&
           place.instagram_image_urls.length > 0 && (
             <div
+              ref={carouselRef}
               className="-mr-5 mb-4 flex gap-2 overflow-x-auto overflow-y-hidden pb-2 touch-pan-x snap-x snap-mandatory"
               style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
               onTouchMove={(e) => {
@@ -97,19 +160,13 @@ export default function PlaceOverlay({ place, onClose }: PlaceOverlayProps) {
               }}
             >
               {place.instagram_image_urls.map((url, i) => (
-                <div
+                <LazyCarouselImage
                   key={i}
-                  className="relative h-[120px] w-[120px] flex-shrink-0 snap-start overflow-hidden rounded-2xl bg-gray-100 aspect-square"
-                >
-                  <Image
-                    src={url}
-                    alt={`place photo ${i + 1}`}
-                    fill
-                    sizes="120px"
-                    className="object-cover pointer-events-none"
-                    unoptimized={false}
-                  />
-                </div>
+                  src={url}
+                  alt={`place photo ${i + 1}`}
+                  eager={i < 3}
+                  containerRef={carouselRef}
+                />
               ))}
               {/* 우측 끝 여백 스페이서 */}
               <div className="w-3 flex-shrink-0" aria-hidden="true" />
