@@ -51,6 +51,7 @@ function PlacesContent() {
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState(false);
+  const [query, setQuery] = useState("");
 
   function handleSortChange(option: SortOption) {
     if (option === "nearest") {
@@ -76,8 +77,16 @@ function PlacesContent() {
   }
 
   const sorted = sortPlaces(places, sort, userLoc);
-  const visited = sorted.filter((p) => p.visited);
-  const unvisited = sorted.filter((p) => !p.visited);
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? sorted.filter((p) =>
+        [p.name, p.address, p.memo, p.instagram_caption].some((f) =>
+          f?.toLowerCase().includes(q),
+        ),
+      )
+    : sorted;
+  const visited = filtered.filter((p) => p.visited);
+  const unvisited = filtered.filter((p) => !p.visited);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -96,6 +105,29 @@ function PlacesContent() {
           로그아웃
         </button>
       </header>
+
+      {/* 검색바 */}
+      <div className="flex items-center gap-2 bg-white border-b border-gray-100 px-4 py-2">
+        <div className="flex flex-1 items-center gap-2 rounded-full bg-gray-100 px-4 py-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4 flex-shrink-0 text-gray-400">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="장소명, 주소, 메모로 검색"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} className="flex-shrink-0 text-gray-400" aria-label="검색어 지우기">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* 통합 필터바 */}
       <FilterBar
@@ -117,7 +149,7 @@ function PlacesContent() {
         </div>
       )}
 
-      {/* 빈 상태 */}
+      {/* 빈 상태 — 저장된 장소 없음 */}
       {!isLoading && places.length === 0 && (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <p className="text-4xl">📭</p>
@@ -131,8 +163,18 @@ function PlacesContent() {
         </div>
       )}
 
+      {/* 빈 상태 — 검색 결과 없음 */}
+      {!isLoading && places.length > 0 && q && filtered.length === 0 && (
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+          <p className="text-4xl">😅</p>
+          <p className="text-sm font-medium text-gray-500">
+            &ldquo;{query}&rdquo;에 해당하는 장소가 없어요
+          </p>
+        </div>
+      )}
+
       {/* 목록 */}
-      {!isLoading && places.length > 0 && (
+      {!isLoading && filtered.length > 0 && (
         <div className="flex-1 overflow-y-auto">
           {/* 가고싶어요 */}
           {unvisited.length > 0 && (
