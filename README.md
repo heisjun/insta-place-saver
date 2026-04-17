@@ -61,26 +61,26 @@ https://gist.github.com/user-attachments/assets/582a891d-8fc7-494f-aabd-ec5d81de
 
 | 1. URL 입력 | 2. AI 분석 결과 확인 | 3. 저장 완료 |
 | :---: | :---: | :---: |
-| <img width="240" alt="step1" src="https://gist.github.com/user-attachments/assets/187f80eb-e0b1-4470-ac9b-0a5cf5dbcca7" /> | <img width="240" alt="step3" src="https://gist.github.com/user-attachments/assets/6ce6a502-58dd-48d7-a509-a19643e7b3ee" /> | <img width="240" alt="step4" src="https://gist.github.com/user-attachments/assets/7ca236f7-7e83-4437-a45d-f911e37f4388" /> |
+| <img width="240" alt="step1" src="https://github.com/user-attachments/assets/b0fec64f-0b45-47ab-a1e7-fe4feb6cbf03" /> | <img width="240" alt="step3" src="https://github.com/user-attachments/assets/2f45e753-8d49-4444-87f2-52b6a6cad696" /> | <img width="240" alt="step4" src="https://github.com/user-attachments/assets/b9d380c8-d3a8-4fb5-9195-679589cba5ef" /> |
 
 ### 지도 & 목록
 
 | 지도 화면 | 장소 검색 | 목록 화면 |
 | :---: | :---: | :---: |
-| <img width="240" alt="fullmap" src="https://gist.github.com/user-attachments/assets/3b2c3ffe-8667-45aa-9160-5186623ac4eb" /> | <img width="240" alt="search" src="https://gist.github.com/user-attachments/assets/5e5d9bd1-d053-42c4-a85c-6774646758e9" /> | <img width="240" alt="list" src="https://gist.github.com/user-attachments/assets/36de58fd-fb3a-4785-b712-663bd81ac31e" /> |
+| <img width="240" alt="fullmap" src="https://github.com/user-attachments/assets/a9eb04bf-48a6-4358-a059-2b634050a4d3" /> | <img width="240" alt="search" src="https://github.com/user-attachments/assets/cfcffeb7-8e95-4b58-b0b6-9dcfbfe09ddb" /> | <img width="240" alt="list" src="https://github.com/user-attachments/assets/8985c884-5968-43c5-82f1-141c0aa5f0b0" /> |
 
 ### 장소 상세
 
 | 상세 정보 | 방문 기록 (별점) |
 | :---: | :---: |
-| <img width="300" alt="detail" src="https://gist.github.com/user-attachments/assets/569c7b1d-1ed7-44e1-8cba-c091a4a3674e" /> | <img width="300" alt="rating" src="https://gist.github.com/user-attachments/assets/ba1f917e-5b27-4fcb-a977-0ff35d3fa26c" /> |
+| <img width="300" alt="detail" src="https://github.com/user-attachments/assets/36dd2c36-db52-4d4e-9b60-5df8913fe80e" /> | <img width="300" alt="rating" src="https://github.com/user-attachments/assets/3860c94e-d704-4df0-bcbb-8e022da5b99f" /> |
 
 ---
 
 ## 시스템 아키텍처
 
 <p align="center">
-  <img width="700" alt="system architecture" src="https://gist.github.com/user-attachments/assets/01a79abc-5a57-4067-875d-5c97663545c0" />
+  <img width="700" alt="system architecture" src="https://github.com/user-attachments/assets/60931734-f227-4bfa-a4a3-a5e40dc1713b" />
 </p>
 
 ---
