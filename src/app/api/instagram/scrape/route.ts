@@ -1,4 +1,6 @@
 import { scrapeInstagramCaption } from "@/lib/instagram";
+import { uploadInstagramImages } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -13,6 +15,24 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await scrapeInstagramCaption(url);
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user && result.imageUrls.length > 0) {
+      const uploads = await uploadInstagramImages(
+        result.imageUrls.map((u, i) => ({
+          url: u,
+          shortcode: result.shortcode,
+          index: i,
+        })),
+        user.id
+      );
+      result.imageUrls = uploads.map((r) => r.url);
+    }
+
     return NextResponse.json(result);
   } catch (err) {
     console.error("[instagram/scrape]", err);

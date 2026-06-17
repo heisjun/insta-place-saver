@@ -19,7 +19,59 @@ const CATEGORY_EMOJI: Record<string, string> = {
 // ──────────────────────────────────────────────
 // 이미지 캐러셀
 // ──────────────────────────────────────────────
-function ImageCarousel({ urls }: { urls: string[] }) {
+function CarouselImage({
+  url,
+  index,
+  isFirst,
+  instagramUrl,
+}: {
+  url: string;
+  index: number;
+  isFirst: boolean;
+  instagramUrl?: string | null;
+}) {
+  const [errored, setErrored] = useState(false);
+
+  if (errored) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gray-100 text-gray-400">
+        <span className="text-3xl" aria-hidden="true">📷</span>
+        <p className="text-xs">이미지를 불러올 수 없어요</p>
+        {instagramUrl && (
+          <a
+            href={instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gray-600 underline"
+          >
+            인스타그램에서 보기
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={url}
+      alt={`사진 ${index + 1}`}
+      fill
+      sizes="100vw"
+      className="object-cover"
+      unoptimized={false}
+      priority={isFirst}
+      onError={() => setErrored(true)}
+    />
+  );
+}
+
+function ImageCarousel({
+  urls,
+  instagramUrl,
+}: {
+  urls: string[];
+  instagramUrl?: string | null;
+}) {
   const [current, setCurrent] = useState(0);
   const startXRef = useRef(0);
   const startYRef = useRef(0);
@@ -78,14 +130,11 @@ function ImageCarousel({ urls }: { urls: string[] }) {
       >
         {urls.map((url, i) => (
           <div key={i} className="relative h-full w-full flex-shrink-0">
-            <Image
-              src={url}
-              alt={`사진 ${i + 1}`}
-              fill
-              sizes="100vw"
-              className="object-cover"
-              unoptimized={false}
-              priority={i === 0}
+            <CarouselImage
+              url={url}
+              index={i}
+              isFirst={i === 0}
+              instagramUrl={instagramUrl}
             />
           </div>
         ))}
@@ -189,7 +238,10 @@ function PlaceDetailContent({ id }: { id: string }) {
       <div className="flex-1 overflow-y-auto pb-nav">
         {/* 이미지 캐러셀 */}
         {hasImages ? (
-          <ImageCarousel urls={place.instagram_image_urls!} />
+          <ImageCarousel
+            urls={place.instagram_image_urls!}
+            instagramUrl={place.instagram_url}
+          />
         ) : (
           <div
             className="w-full flex items-center justify-center bg-gray-50 text-4xl"

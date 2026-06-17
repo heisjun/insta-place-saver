@@ -18,6 +18,7 @@ function LazyCarouselImage({
 }) {
   const itemRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(eager);
+  const [errored, setErrored] = useState(false);
 
   useEffect(() => {
     if (loaded) return;
@@ -48,7 +49,15 @@ function LazyCarouselImage({
       ref={itemRef}
       className="relative h-[120px] w-[120px] flex-shrink-0 snap-start overflow-hidden rounded-2xl bg-gray-100 aspect-square"
     >
-      {loaded ? (
+      {errored ? (
+        <div
+          className="flex h-full w-full flex-col items-center justify-center gap-1 text-gray-400"
+          aria-label="이미지를 불러올 수 없음"
+        >
+          <span className="text-xl" aria-hidden="true">📷</span>
+          <span className="text-[10px]">불러올 수 없음</span>
+        </div>
+      ) : loaded ? (
         <Image
           src={src}
           alt={alt}
@@ -56,6 +65,7 @@ function LazyCarouselImage({
           sizes="120px"
           className="object-cover pointer-events-none"
           unoptimized={false}
+          onError={() => setErrored(true)}
         />
       ) : (
         // 아직 뷰포트 밖 — 플레이스홀더만 렌더링

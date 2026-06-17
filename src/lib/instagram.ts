@@ -83,11 +83,13 @@ export async function scrapeInstagramCaption(
       }
     });
   }
-  // 중복 제거 및 null 방지
-  imageUrls = [...new Set(imageUrls)].filter(Boolean);
+  // 중복 제거, null 방지, 최대 6장으로 제한 (Supabase Storage 용량 관리 목적)
+  imageUrls = [...new Set(imageUrls)].filter(Boolean).slice(0, MAX_IMAGES);
 
   return { caption, authorName, shortcode, imageUrls };
 }
+
+export const MAX_IMAGES = 6;
 
 // Apify Instagram Scraper 응답 타입 (주요 필드만)
 interface ApifyPost {
