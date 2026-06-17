@@ -47,6 +47,29 @@ description: 한 사이클 개발 작업을 골격 생성 → 자체 검토 → 
 
 **잘못된 스킵**: 새 React 컴포넌트/훅을 만들면서 "간단해서" 스캐폴딩 생략 — 금지. 이 경우는 *반드시* 스캐폴딩 호출. 단순할수록 테스트가 5분이면 끝남.
 
+## UI 컴포넌트 작업 시 보강 흐름
+
+React 컴포넌트가 새로 들어가는 사이클이면, `scaffold-component` 호출 *전*에 다음 두 단계를 거친다.
+
+### 1. shadcn 우선 검토
+`.mcp.json`에 shadcn MCP가 등록되어 있으면 자연어로 "이 UI에 쓸 만한 shadcn 컴포넌트가 있는지" 먼저 묻는다. 있으면 *직접 만들지 않고* `npx shadcn@latest add <component>`로 가져와 사용. 이유:
+- 표준 컴포넌트는 a11y·키보드 핸들링이 이미 검증돼있음
+- 디자인 일관성이 자연스럽게 따라옴
+- 우리가 만든 self-review 4축 중 *접근성*·*불필요 리렌더링* 두 축의 위험이 크게 줄음
+
+shadcn 컴포넌트로 충분하면 scaffold-component 단계는 *생략*하고 self-review로 직행.
+
+### 2. 직접 작성할 때만 frontend-design 적용
+shadcn에 없거나 부족해서 *직접* 컴포넌트를 작성해야 할 때만 `frontend-design` 스킬의 가이드(대담한 톤 선택, generic 폰트·색 금지, 의도 있는 디자인)를 적용. 단순 wrap·composition은 생략 가능.
+
+### 책임 분리 요약
+| 도구 | 책임 |
+|---|---|
+| shadcn MCP | "이미 만들어진 표준 컴포넌트가 있는가" 판단·설치 |
+| `frontend-design` | 직접 만들 때의 *미적 방향* |
+| `scaffold-component` | 위치·Server/Client·테스트 골격 |
+| `self-review` | 4축 검토 (a11y·리렌더링 등 모든 결과물에 적용) |
+
 ## 입력
 
 - 자유 형식 자연어 (예: "PlaceFilterButton 컴포넌트 만들고 한 사이클 진행해줘")
