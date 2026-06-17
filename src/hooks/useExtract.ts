@@ -3,29 +3,19 @@
 import { ExtractedPlaceWithKakao } from "@/lib/types";
 import { useState } from "react";
 
-type Step = "idle" | "scraping" | "extracting" | "done" | "error";
-
-interface ExtractState {
-  step: Step;
-  places: ExtractedPlaceWithKakao[];
-  error: string | null;
-  caption: string | null;
-  imageUrls: string[];
-}
+export type ExtractState =
+  | { step: "idle" }
+  | { step: "scraping" }
+  | { step: "extracting"; caption: string; imageUrls: string[] }
+  | { step: "done"; places: ExtractedPlaceWithKakao[]; caption: string; imageUrls: string[] }
+  | { step: "error"; error: string; failedAt: "scraping" | "extracting"; retryCaption?: string };
 
 export function useExtract() {
-  const [state, setState] = useState<ExtractState>({
-    step: "idle",
-    places: [],
-    error: null,
-    caption: null,
-    imageUrls: [],
-  });
+  const [state, setState] = useState<ExtractState>({ step: "idle" });
 
   async function run(url: string) {
-    setState({ step: "scraping", places: [], error: null, caption: null, imageUrls: [] });
+    setState({ step: "scraping" });
 
-    // 1. 캡션 크롤링
     let caption: string;
     let imageUrls: string[] = [];
     try {
@@ -37,29 +27,18 @@ export function useExtract() {
       const data = await res.json();
 
       if (!res.ok) {
-        setState((s) => ({
-          ...s,
-          step: "error",
-          error: data.error ?? "캡션을 가져오지 못했습니다",
-        }));
+        setState({ step: "error", error: data.error ?? "캡션을 가져오지 못했습니다", failedAt: "scraping" });
         return;
       }
       caption = data.caption;
-      if (data.imageUrls) {
-        imageUrls = data.imageUrls;
-      }
+      imageUrls = data.imageUrls ?? [];
     } catch {
-      setState((s) => ({
-        ...s,
-        step: "error",
-        error: "네트워크 오류가 발생했습니다",
-      }));
+      setState({ step: "error", error: "네트워크 오류가 발생했습니다", failedAt: "scraping" });
       return;
     }
 
-    setState((s) => ({ ...s, step: "extracting", caption, imageUrls }));
+    setState({ step: "extracting", caption, imageUrls });
 
-    // 2. Claude 추출 + 카카오 검색
     try {
       const res = await fetch("/api/extract", {
         method: "POST",
@@ -69,35 +48,23 @@ export function useExtract() {
       const data = await res.json();
 
       if (!res.ok) {
-        setState((s) => ({
-          ...s,
-          step: "error",
-          error: data.error ?? "AI 분석에 실패했습니다",
-        }));
+        setState({ step: "error", error: data.error ?? "AI 분석에 실패했습니다", failedAt: "extracting", retryCaption: caption });
         return;
       }
 
       if (!data.places || data.places.length === 0) {
-        setState((s) => ({
-          ...s,
-          step: "error",
-          error: "이 게시글에서 가게 정보를 찾지 못했어요",
-        }));
+        setState({ step: "error", error: "이 게시글에서 가게 정보를 찾지 못했어요", failedAt: "extracting", retryCaption: caption });
         return;
       }
 
-      setState((s) => ({ ...s, step: "done", places: data.places }));
+      setState({ step: "done", places: data.places, caption, imageUrls });
     } catch {
-      setState((s) => ({
-        ...s,
-        step: "error",
-        error: "AI 분석 중 오류가 발생했습니다",
-      }));
+      setState({ step: "error", error: "AI 분석 중 오류가 발생했습니다", failedAt: "extracting", retryCaption: caption });
     }
   }
 
   async function runWithCaption(caption: string) {
-    setState({ step: "extracting", places: [], error: null, caption, imageUrls: [] });
+    setState({ step: "extracting", caption, imageUrls: [] });
 
     try {
       const res = await fetch("/api/extract", {
@@ -108,36 +75,24 @@ export function useExtract() {
       const data = await res.json();
 
       if (!res.ok) {
-        setState((s) => ({
-          ...s,
-          step: "error",
-          error: data.error ?? "AI 분석에 실패했습니다",
-        }));
+        setState({ step: "error", error: data.error ?? "AI 분석에 실패했습니다", failedAt: "extracting", retryCaption: caption });
         return;
       }
 
       if (!data.places || data.places.length === 0) {
-        setState((s) => ({
-          ...s,
-          step: "error",
-          error: "이 게시글에서 가게 정보를 찾지 못했어요",
-        }));
+        setState({ step: "error", error: "이 게시글에서 가게 정보를 찾지 못했어요", failedAt: "extracting", retryCaption: caption });
         return;
       }
 
-      setState((s) => ({ ...s, step: "done", places: data.places }));
+      setState({ step: "done", places: data.places, caption, imageUrls: [] });
     } catch {
-      setState((s) => ({
-        ...s,
-        step: "error",
-        error: "AI 분석 중 오류가 발생했습니다",
-      }));
+      setState({ step: "error", error: "AI 분석 중 오류가 발생했습니다", failedAt: "extracting", retryCaption: caption });
     }
   }
 
   function reset() {
-    setState({ step: "idle", places: [], error: null, caption: null, imageUrls: [] });
+    setState({ step: "idle" });
   }
 
-  return { ...state, run, runWithCaption, reset };
+  return { state, run, runWithCaption, reset };
 }

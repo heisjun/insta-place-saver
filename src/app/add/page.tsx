@@ -88,7 +88,6 @@ function SkeletonCard({ phase }: { phase: "scraping" | "extracting" }) {
 
   return (
     <div className="relative rounded-2xl border border-gray-200 bg-white p-4 overflow-hidden">
-      {/* 스켈레톤 레이아웃 — ExtractResult 카드와 동일한 구조 */}
       <div className="flex gap-3">
         <div className="flex flex-1 flex-col gap-2">
           <div className="shimmer h-5 w-14 rounded-full" />
@@ -103,8 +102,6 @@ function SkeletonCard({ phase }: { phase: "scraping" | "extracting" }) {
         <div className="shimmer h-10 flex-1 rounded-xl" />
         <div className="shimmer h-10 flex-1 rounded-xl" />
       </div>
-
-      {/* 중앙 상태 텍스트 오버레이 */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-white/70 backdrop-blur-[1px]">
         <IOSSpinner />
         <p className="text-xs font-medium text-gray-500">{label}</p>
@@ -117,7 +114,7 @@ function SkeletonCard({ phase }: { phase: "scraping" | "extracting" }) {
 function AddContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { step, places, error, caption, imageUrls, run, runWithCaption, reset } = useExtract();
+  const { state, run, runWithCaption, reset } = useExtract();
   const [instagramUrl, setInstagramUrl] = useState("");
   const [completed, setCompleted] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
@@ -150,10 +147,10 @@ function AddContent() {
     setCompleted(true);
   }
 
-  const isLoading = step === "scraping" || step === "extracting";
+  const isLoading = state.step === "scraping" || state.step === "extracting";
 
   function handleBack() {
-    if (step === "idle") {
+    if (state.step === "idle") {
       router.back();
     } else {
       reset();
@@ -198,17 +195,27 @@ function AddContent() {
         {/* 로딩 */}
         {!completed && isLoading && (
           <div className="flex flex-col gap-2">
-            <StepBar step={step} />
-            <SkeletonCard phase={step === "scraping" ? "scraping" : "extracting"} />
+            <StepBar step={state.step} />
+            <SkeletonCard phase={state.step === "scraping" ? "scraping" : "extracting"} />
           </div>
         )}
 
         {/* 에러 */}
-        {!completed && step === "error" && (
+        {!completed && state.step === "error" && (
           <div className="flex flex-col gap-4">
             <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-600">
-              {error}
+              {state.error}
             </div>
+
+            {/* extracting 단계 실패 시: 보존된 캡션으로 AI 재시도 */}
+            {state.failedAt === "extracting" && state.retryCaption && (
+              <button
+                onClick={() => runWithCaption(state.retryCaption!)}
+                className="h-11 w-full rounded-xl bg-black text-sm font-medium text-white"
+              >
+                AI 분석 다시 시도
+              </button>
+            )}
 
             {/* 캡션 직접 붙여넣기 폴백 */}
             <div className="rounded-2xl border border-gray-200 bg-white p-4">
@@ -250,17 +257,17 @@ function AddContent() {
         )}
 
         {/* URL 입력 (초기) */}
-        {!completed && step === "idle" && (
+        {!completed && state.step === "idle" && (
           <UrlInput onSubmit={handleSubmit} />
         )}
 
         {/* 결과 */}
-        {!completed && step === "done" && (
+        {!completed && state.step === "done" && (
           <ExtractResult
-            places={places}
+            places={state.places}
             instagramUrl={instagramUrl}
-            instagramCaption={caption}
-            imageUrls={imageUrls}
+            instagramCaption={state.caption}
+            imageUrls={state.imageUrls}
             onComplete={handleComplete}
           />
         )}
