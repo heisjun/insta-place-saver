@@ -8,7 +8,7 @@ import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { getCategoryColor } from "@/lib/mapColors";
 import { Place } from "@/lib/types";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState, Suspense } from "react";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -30,7 +30,6 @@ function searchPlaces(places: Place[], query: string): Place[] {
 }
 
 function MapContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const autoSelectId = searchParams.get("selectId") ?? undefined;
   const { selected } = useCategoryFilter();
@@ -184,18 +183,38 @@ function MapContent() {
         />
       </div>
 
-      {/* 장소 없을 때 안내 */}
+      {/* 장소 없을 때 — 온보딩 안내 (CTA는 하단 + 버튼이 담당) */}
       {!isLoading && places.length === 0 && !searchOpen && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none pt-24">
-          <p className="text-3xl">🗺️</p>
-          <p className="text-sm font-medium text-gray-500">저장된 장소가 없어요</p>
-          <button
-            onClick={() => router.push("/add")}
-            className="pointer-events-auto rounded-xl bg-black px-5 py-2.5 text-sm font-medium text-white"
-          >
-            첫 장소 추가하기
-          </button>
-        </div>
+        <>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center px-6 pt-32">
+            <div className="max-w-xs text-center">
+              <div className="mb-4 text-4xl">📍</div>
+              <p className="text-base font-semibold text-gray-900">
+                아직 저장된 장소가 없어요
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                인스타 게시글 URL을 붙여넣어
+                <br />첫 장소를 추가해보세요
+              </p>
+            </div>
+          </div>
+
+          {/* BottomNav 가운데 + 버튼 가리키는 단서 */}
+          <div className="pointer-events-none absolute bottom-24 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 text-gray-500">
+            <span className="text-xs font-medium">아래 + 버튼을 눌러주세요</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.2}
+              className="h-6 w-6 animate-bounce"
+              aria-hidden
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0 6-6m-6 6-6-6" />
+            </svg>
+          </div>
+        </>
       )}
 
       {/* 선택된 장소 오버레이 */}
