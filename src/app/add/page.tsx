@@ -3,7 +3,6 @@
 import ExtractResult from "@/components/place/ExtractResult";
 import SaveSuccessScreen from "@/components/place/SaveSuccessScreen";
 import UrlInput from "@/components/place/UrlInput";
-import AuthGuard from "@/components/layout/AuthGuard";
 import { useExtract } from "@/hooks/useExtract";
 import { extractInstagramUrl } from "@/lib/instagram";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -278,10 +277,8 @@ function AddContent() {
 
 export default function AddPage() {
   return (
-    <AuthGuard>
-      <Suspense>
-        <AddContent />
-      </Suspense>
-    </AuthGuard>
+    <Suspense>
+      <AddContent />
+    </Suspense>
   );
 }

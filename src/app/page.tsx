@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import Hero from "@/components/landing/Hero";
+import HowItWorks from "@/components/landing/HowItWorks";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -9,7 +11,12 @@ export default async function Home() {
 
   if (user) {
     redirect("/map");
-  } else {
-    redirect("/login");
   }
+
+  return (
+    <main className="h-full overflow-y-auto bg-white">
+      <Hero />
+      <HowItWorks />
+    </main>
+  );
 }
