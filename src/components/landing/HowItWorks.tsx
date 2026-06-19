@@ -14,9 +14,18 @@ const CATEGORY_COLORS = {
   기타: "#6B7280",
 } as const;
 
+const LOOP_MS = 4500;
+
 export default function HowItWorks() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const inView = useInView(sectionRef, { once: true, margin: "-100px" });
+  const inView = useInView(sectionRef, { margin: "-100px" });
+  const [cycle, setCycle] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const id = setInterval(() => setCycle((c) => c + 1), LOOP_MS);
+    return () => clearInterval(id);
+  }, [inView]);
 
   return (
     <section
@@ -32,7 +41,7 @@ export default function HowItWorks() {
           id="how-it-works-title"
           className="font-heading text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl"
         >
-          어떻게 동작해요
+          이렇게 동작해요
         </h2>
       </div>
 
@@ -42,21 +51,21 @@ export default function HowItWorks() {
           title="URL 붙여넣기"
           description="인스타 게시글의 공유 링크를 입력해요."
         >
-          <TypingUrlPreview active={inView} />
+          <TypingUrlPreview key={cycle} active={inView} />
         </StepCard>
         <StepCard
           step="02"
           title="AI가 정보 추출"
           description="가게 이름·주소·카테고리를 자동으로 뽑아내요."
         >
-          <ExtractCardPreview active={inView} />
+          <ExtractCardPreview key={cycle} active={inView} />
         </StepCard>
         <StepCard
           step="03"
           title="지도에 저장"
           description="카테고리 색 핀으로 내 지도에 모여요."
         >
-          <MapPinsPreview active={inView} />
+          <MapPinsPreview key={cycle} active={inView} />
         </StepCard>
       </ol>
     </section>
@@ -186,7 +195,7 @@ const PINS: PinSpec[] = [
 function MapPinsPreview({ active }: { active: boolean }) {
   return (
     <div
-      className="relative h-full w-full overflow-hidden rounded-lg border border-gray-200 bg-white"
+      className="relative h-28 w-full max-w-[200px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
       style={{
         backgroundImage:
           "linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)",
