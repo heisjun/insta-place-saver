@@ -31,7 +31,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // 보호된 라우트 리다이렉트
-  const protectedRoutes = ["/map", "/add", "/places"];
+  // /add 는 비로그인 체험을 허용 — 저장 시점(다음 사이클)에 로그인 모달로 게이팅
+  const protectedRoutes = ["/map", "/places"];
   const isProtected = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
