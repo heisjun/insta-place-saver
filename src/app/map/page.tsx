@@ -8,7 +8,7 @@ import { usePlaces } from "@/hooks/usePlaces";
 import { useCategoryFilter } from "@/store/categoryFilter";
 import { getCategoryColor } from "@/lib/mapColors";
 import { Place } from "@/lib/types";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState, Suspense } from "react";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -30,7 +30,6 @@ function searchPlaces(places: Place[], query: string): Place[] {
 }
 
 function MapContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const autoSelectId = searchParams.get("selectId") ?? undefined;
   const { selected } = useCategoryFilter();
@@ -184,19 +183,6 @@ function MapContent() {
         />
       </div>
 
-      {/* 장소 없을 때 안내 */}
-      {!isLoading && places.length === 0 && !searchOpen && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none pt-24">
-          <p className="text-3xl">🗺️</p>
-          <p className="text-sm font-medium text-gray-500">저장된 장소가 없어요</p>
-          <button
-            onClick={() => router.push("/add")}
-            className="pointer-events-auto rounded-xl bg-black px-5 py-2.5 text-sm font-medium text-white"
-          >
-            첫 장소 추가하기
-          </button>
-        </div>
-      )}
 
       {/* 선택된 장소 오버레이 */}
       {selectedPlace && (

@@ -8,14 +8,18 @@ function LoginContent() {
   const [loading, setLoading] = useState<"kakao" | "google" | null>(null);
   const searchParams = useSearchParams();
   const hasError = searchParams.get("error") === "auth_failed";
+  const next = searchParams.get("next");
   const supabase = createClient();
 
   async function signIn(provider: "kakao" | "google") {
     setLoading(provider);
+    const callback = next
+      ? `${location.origin}/api/auth/callback?next=${encodeURIComponent(next)}`
+      : `${location.origin}/api/auth/callback`;
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${location.origin}/api/auth/callback`,
+        redirectTo: callback,
       },
     });
   }

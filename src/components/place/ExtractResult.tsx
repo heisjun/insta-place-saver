@@ -1,6 +1,9 @@
 "use client";
 
 import { useSavePlace } from "@/hooks/usePlaces";
+import { useSupabase } from "@/components/providers/SupabaseProvider";
+import LoginGateDialog from "@/components/layout/LoginGateDialog";
+import { savePendingSave } from "@/lib/pendingSave";
 import { ExtractedPlaceWithKakao, PlaceCategory } from "@/lib/types";
 import { useState } from "react";
 import Image from "next/image";
@@ -32,7 +35,9 @@ export default function ExtractResult({
   const [skippedIds, setSkippedIds] = useState<Set<number>>(new Set());
   const [editedNames, setEditedNames] = useState<Record<number, string>>({});
   const [firstSavedPlaceId, setFirstSavedPlaceId] = useState<string | undefined>();
+  const [loginGateOpen, setLoginGateOpen] = useState(false);
   const { mutateAsync: savePlace, isPending } = useSavePlace();
+  const { session } = useSupabase();
 
   const remaining = places.filter(
     (_, i) => !savedIds.has(i) && !skippedIds.has(i)
@@ -43,6 +48,19 @@ export default function ExtractResult({
     const name = editedNames[idx] ?? place.name;
 
     if (!kakao) return;
+
+    // 비로그인 — sessionStorage에 현재 화면을 통째로 보존하고 로그인 모달 표시
+    if (!session) {
+      savePendingSave({
+        instagramUrl,
+        places,
+        caption: instagramCaption ?? "",
+        imageUrls,
+        editedNames,
+      });
+      setLoginGateOpen(true);
+      return;
+    }
 
     const saved = await savePlace({
       name,
@@ -208,6 +226,8 @@ export default function ExtractResult({
       {remaining.length === 0 && places.length > 0 && (
         <p className="text-center text-sm text-gray-400">모두 처리됐어요</p>
       )}
+
+      <LoginGateDialog open={loginGateOpen} onOpenChange={setLoginGateOpen} />
     </div>
   );
 }

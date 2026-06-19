@@ -5,6 +5,7 @@ import SaveSuccessScreen from "@/components/place/SaveSuccessScreen";
 import UrlInput from "@/components/place/UrlInput";
 import { useExtract } from "@/hooks/useExtract";
 import { extractInstagramUrl } from "@/lib/instagram";
+import { clearPendingSave, getPendingSave } from "@/lib/pendingSave";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -113,7 +114,7 @@ function SkeletonCard({ phase }: { phase: "scraping" | "extracting" }) {
 function AddContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { state, run, runWithCaption, reset } = useExtract();
+  const { state, run, runWithCaption, reset, restoreDone } = useExtract();
   const [instagramUrl, setInstagramUrl] = useState("");
   const [completed, setCompleted] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
@@ -121,6 +122,19 @@ function AddContent() {
   const [manualCaption, setManualCaption] = useState("");
 
   useEffect(() => {
+    // 로그인 복귀 — sessionStorage에 보존된 분석 결과를 그대로 복원 (재분석 X)
+    const pending = getPendingSave();
+    if (pending) {
+      setInstagramUrl(pending.instagramUrl);
+      restoreDone({
+        places: pending.places,
+        caption: pending.caption,
+        imageUrls: pending.imageUrls,
+      });
+      clearPendingSave();
+      return;
+    }
+
     const raw =
       searchParams.get("url") ||
       searchParams.get("shared_url") ||

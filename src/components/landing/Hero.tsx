@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -41,7 +40,7 @@ export default function Hero() {
       />
 
       <header className="mx-auto flex max-w-5xl items-center justify-between px-5 pt-6 sm:pt-8">
-        <span className="text-base font-bold tracking-tight">Plaver</span>
+        <img src="/logo.svg" alt="Plaver" className="h-6 w-auto" />
         <Link
           href="/login"
           className="text-sm font-medium text-gray-700 underline-offset-4 hover:underline"
@@ -51,16 +50,6 @@ export default function Hero() {
       </header>
 
       <div className="mx-auto flex max-w-3xl flex-col items-center px-5 pt-16 pb-24 text-center sm:pt-24 sm:pb-32">
-        <motion.p
-          initial={RISE}
-          animate={RISE_IN}
-          transition={{ duration: 0.45, delay: 0 }}
-          className="mb-5 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-1 text-xs font-medium tracking-wide text-gray-600 backdrop-blur"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-[#EF4444]" />
-          인스타 → 카카오맵 자동 저장
-        </motion.p>
-
         <motion.h1
           initial={RISE}
           animate={RISE_IN}
@@ -84,8 +73,12 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: STAGGER * 2 }}
           className="mt-6 max-w-xl text-base leading-relaxed text-gray-600 sm:text-lg"
         >
-          게시글 URL만 붙여넣으면 AI가 가게 이름·주소·카테고리를 뽑아
-          개인 지도에 핀으로 저장해요. <span className="font-medium text-gray-900">로그인 없이 먼저 확인</span>해보세요.
+          게시글 URL만 붙여넣으면 AI가 가게 이름·주소·카테고리를 뽑아 개인
+          지도에 핀으로 저장해요.{" "}
+          <span className="font-medium text-gray-900">
+            로그인 없이 먼저 확인
+          </span>
+          해보세요.
         </motion.p>
 
         <motion.form
@@ -114,10 +107,9 @@ export default function Hero() {
             <Button
               type="submit"
               disabled={!canSubmit}
-              className="group h-12 rounded-xl px-5 text-base font-semibold disabled:opacity-40"
+              className="h-12 w-full rounded-xl px-5 text-base font-semibold disabled:opacity-40 sm:w-auto"
             >
               가게 찾기
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-enabled:group-hover:translate-x-0.5" />
             </Button>
           </div>
           <p className="mt-3 text-xs text-gray-500">
