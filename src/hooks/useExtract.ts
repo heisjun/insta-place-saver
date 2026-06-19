@@ -94,5 +94,13 @@ export function useExtract() {
     setState({ step: "idle" });
   }
 
-  return { state, run, runWithCaption, reset };
+  function restoreDone(payload: {
+    places: ExtractedPlaceWithKakao[];
+    caption: string;
+    imageUrls: string[];
+  }) {
+    setState({ step: "done", ...payload });
+  }
+
+  return { state, run, runWithCaption, reset, restoreDone };
 }

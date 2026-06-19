@@ -4,7 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/map";
+  const nextParam = searchParams.get("next") ?? "/map";
+  // open redirect 방지 — 내부 경로만 허용 ("/foo" OK, "//evil.com" 차단)
+  const next =
+    nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/map";
 
   if (code) {
     const supabase = await createClient();
