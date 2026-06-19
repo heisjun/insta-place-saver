@@ -183,13 +183,6 @@ function MapContent() {
         />
       </div>
 
-      {/* 장소 없을 때 안내 */}
-      {!isLoading && places.length === 0 && !searchOpen && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none pt-24">
-          <p className="text-3xl">🗺️</p>
-          <p className="text-sm font-medium text-gray-500">저장된 장소가 없어요</p>
-        </div>
-      )}
 
       {/* 선택된 장소 오버레이 */}
       {selectedPlace && (
