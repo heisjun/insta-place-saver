@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -108,10 +107,9 @@ export default function Hero() {
             <Button
               type="submit"
               disabled={!canSubmit}
-              className="group h-12 rounded-xl px-5 text-base font-semibold disabled:opacity-40"
+              className="h-12 w-full rounded-xl px-5 text-base font-semibold disabled:opacity-40 sm:w-auto"
             >
               가게 찾기
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-enabled:group-hover:translate-x-0.5" />
             </Button>
           </div>
           <p className="mt-3 text-xs text-gray-500">
